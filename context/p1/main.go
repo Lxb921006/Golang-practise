@@ -34,5 +34,6 @@ func main() {
 	exitChan <- struct{}{}      // 给子goroutine发送退出信号
 	close(exitChan)
 	wg.Wait()
+
 	fmt.Println("over")
 }

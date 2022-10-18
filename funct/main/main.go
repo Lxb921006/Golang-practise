@@ -4,9 +4,10 @@ package main
 
 import (
 	"fmt"
-	util "lxb-learn/funct/utils" //给包起个别名
 	"strconv"
 	"strings"
+
+	util "github.com/Lxb921006/Golang-practise/funct/utils" //给包起个别名
 )
 
 func main() {

@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"lxb-learn/net/practice01/server001/model"
-	"lxb-learn/net/practice01/server001/process"
 	"net"
+
+	"github.com/Lxb921006/Golang-practise/net/practice01/server001/model"
+	"github.com/Lxb921006/Golang-practise/net/practice01/server001/process"
 )
 
 func init() {

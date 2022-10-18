@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	model "lxb-learn/factory/model"
+
+	model "github.com/Lxb921006/Golang-practise/factory/model"
 ) //给包起个别名
 
 func main() {

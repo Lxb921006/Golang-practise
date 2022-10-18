@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	account "lxb-learn/object/account"
-	person "lxb-learn/object/person"
 	"strconv"
+
+	account "github.com/Lxb921006/Golang-practise/object/account"
+	person "github.com/Lxb921006/Golang-practise/object/person"
 )
 
 type Student struct {

@@ -5,10 +5,11 @@ package main
 import (
 	"fmt"
 	"io"
-	Common "lxb-learn/net/practice01/common"
-	UserMessage "lxb-learn/net/practice01/model"
-	UserProcess "lxb-learn/net/practice01/server001/process"
 	"net"
+
+	Common "github.com/Lxb921006/Golang-practise/net/practice01/common"
+	UserMessage "github.com/Lxb921006/Golang-practise/net/practice01/model"
+	UserProcess "github.com/Lxb921006/Golang-practise/net/practice01/server001/process"
 )
 
 type Processer struct {

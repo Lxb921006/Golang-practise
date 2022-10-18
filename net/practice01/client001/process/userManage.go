@@ -2,8 +2,9 @@ package process
 
 import (
 	"fmt"
-	CurUsersModel "lxb-learn/net/practice01/client001/model"
-	UserMessage "lxb-learn/net/practice01/model"
+
+	CurUsersModel "github.com/Lxb921006/Golang-practise/net/practice01/client001/model"
+	UserMessage "github.com/Lxb921006/Golang-practise/net/practice01/model"
 )
 
 //客户端也维护的一个用户列表,map类型

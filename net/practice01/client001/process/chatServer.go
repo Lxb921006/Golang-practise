@@ -3,9 +3,10 @@ package process
 import (
 	"encoding/json"
 	"fmt"
-	Common "lxb-learn/net/practice01/common"
-	"lxb-learn/net/practice01/model"
 	"net"
+
+	Common "github.com/Lxb921006/Golang-practise/net/practice01/common"
+	"github.com/Lxb921006/Golang-practise/net/practice01/model"
 )
 
 //这里是保持跟服务器的连接,接收服务器端发送的消息并显示在界面,如单聊,群聊信息

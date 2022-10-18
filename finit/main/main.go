@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	util "lxb-learn/finit/utils"
 	_ "os"
 	"strconv"
 	"strings"
+
+	util "github.com/Lxb921006/Golang-practise/finit/utils"
 ) //给包起个别名
 
 //每一个源文件都可以包含一个init函数，init函数会在main函数执行前，被go运行框架调用，也就是说init会在main函数前被调用

@@ -2,7 +2,8 @@ package main
 
 import (
 	_ "fmt"
-	customer "lxb-learn/project/cusmanage/customerView"
+
+	customer "github.com/Lxb921006/Golang-practise/project/cusmanage/customerView"
 )
 
 func main() {

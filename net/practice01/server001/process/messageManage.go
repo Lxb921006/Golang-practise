@@ -2,7 +2,8 @@ package process
 
 import (
 	"fmt"
-	"lxb-learn/net/practice01/model"
+
+	"github.com/Lxb921006/Golang-practise/net/practice01/model"
 )
 
 var (

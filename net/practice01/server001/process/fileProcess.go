@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	Common "lxb-learn/net/practice01/common"
-	"lxb-learn/net/practice01/model"
 	"net"
+
+	Common "github.com/Lxb921006/Golang-practise/net/practice01/common"
+	"github.com/Lxb921006/Golang-practise/net/practice01/model"
 )
 
 type FileProcess struct {

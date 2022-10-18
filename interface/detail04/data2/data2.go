@@ -2,7 +2,8 @@ package data2
 
 import (
 	"fmt"
-	"lxb-learn/interface/detail04/data"
+
+	"github.com/Lxb921006/Golang-practise/interface/detail04/data"
 )
 
 type Data2 struct{}

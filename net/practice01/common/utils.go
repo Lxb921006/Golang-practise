@@ -5,8 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	UserMessage "lxb-learn/net/practice01/model"
 	"net"
+
+	UserMessage "github.com/Lxb921006/Golang-practise/net/practice01/model"
 )
 
 type TransData struct {

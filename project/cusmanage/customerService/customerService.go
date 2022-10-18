@@ -3,7 +3,8 @@ package customerservice
 import (
 	"errors"
 	"fmt"
-	customer01 "lxb-learn/project/cusmanage/customerModel"
+
+	customer01 "github.com/Lxb921006/Golang-practise/project/cusmanage/customerModel"
 )
 
 type CustomerSystemList []customer01.CustomerSystemField

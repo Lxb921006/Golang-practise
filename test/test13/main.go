@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"lxb-learn/test/test13/pkg1"
-	"lxb-learn/test/test13/pkg2"
+
+	"github.com/Lxb921006/Golang-practise/test/test13/pkg1"
+	"github.com/Lxb921006/Golang-practise/test/test13/pkg2"
 )
 
 type Allpkg struct {

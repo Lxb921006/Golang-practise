@@ -5,9 +5,10 @@ import (
 	"errors"
 	"fmt"
 
-	Common "lxb-learn/net/practice01/common"
-	UserMessage "lxb-learn/net/practice01/model"
 	"net"
+
+	Common "github.com/Lxb921006/Golang-practise/net/practice01/common"
+	UserMessage "github.com/Lxb921006/Golang-practise/net/practice01/model"
 )
 
 type UserProcessor struct {

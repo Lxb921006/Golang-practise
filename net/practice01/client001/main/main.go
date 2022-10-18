@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	UserProcesser "lxb-learn/net/practice01/client001/process"
-	UserModel "lxb-learn/net/practice01/model"
+
+	UserProcesser "github.com/Lxb921006/Golang-practise/net/practice01/client001/process"
+	UserModel "github.com/Lxb921006/Golang-practise/net/practice01/model"
 )
 
 var u UserModel.UserInfor

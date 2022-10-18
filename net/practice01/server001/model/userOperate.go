@@ -3,8 +3,9 @@ package model
 import (
 	"encoding/json"
 	"errors"
-	"lxb-learn/net/practice01/model"
 	"strconv"
+
+	"github.com/Lxb921006/Golang-practise/net/practice01/model"
 
 	"github.com/go-redis/redis"
 )
