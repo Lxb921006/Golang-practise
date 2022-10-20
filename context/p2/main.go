@@ -17,6 +17,7 @@ LOOP:
 		time.Sleep(time.Second)
 		select {
 		case <-ctx.Done(): // 等待上级通知
+			fmt.Println("worker222")
 			break LOOP
 		default:
 		}
