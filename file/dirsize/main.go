@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	path := "C:"
+	path := "C:/Users/Administrator/Desktop/test2/"
 	DirSize(path)
 }
 
