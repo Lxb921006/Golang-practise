@@ -28,18 +28,18 @@ func main() {
 		}
 	}()
 
-	// for {
-	// 	select {
-	// 	case c11 := <-c1:
-	// 		fmt.Println(c11)
-	// 	case c22 := <-c2:
-	// 		fmt.Println(c22)
-	// 	}
-	// }
-
 	for {
-		fmt.Println(<-c1)
-		fmt.Println(<-c2)
+		select {
+		case c11 := <-c1:
+			fmt.Println(c11)
+		case c22 := <-c2:
+			fmt.Println(c22)
+		}
 	}
+
+	// for {
+	// 	fmt.Println(<-c1)
+	// 	fmt.Println(<-c2)
+	// }
 	// 当第一次获取c1,c2的值,由于c2管道在写入数据后要等待2秒，此时c1已经写入数据，但是没有还没有被获取，所以也会跟着阻塞到2秒，为了不影响c1的运行需要用到select
 }
