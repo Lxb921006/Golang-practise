@@ -36,7 +36,6 @@ func main() {
 			fmt.Println(c22)
 		}
 	}
-
 	// for {
 	// 	fmt.Println(<-c1)
 	// 	fmt.Println(<-c2)

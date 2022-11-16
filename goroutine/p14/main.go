@@ -2,19 +2,21 @@ package main
 
 import (
 	"fmt"
+	"runtime"
 	"time"
 )
 
 type Pool struct {
 	Work chan func()
-	Sem  chan bool
+	Sem  chan bool //有缓冲的chan，限制goroutine number
 }
 
 func (p *Pool) Worker(task func()) {
 	defer func() { <-p.Sem }()
 	for {
 		task()
-		task = <-p.Work
+		// <-p.Work
+
 	}
 }
 
@@ -34,13 +36,12 @@ func NewPool(size int) *Pool {
 }
 
 func main() {
-	pool := NewPool(20)
-	for i := 0; i < 100; i++ {
+	pool := NewPool(2)
+	for i := 0; i < 20; i++ {
 		pool.Task(func() {
 			time.Sleep(time.Second)
-			fmt.Println(time.Now().Format("2006-01-02 15:04:05"))
+			fmt.Printf("goroutine num = %d, time = %v\n", runtime.NumGoroutine(), time.Now())
 		})
 	}
-
-	time.Sleep(time.Second * 10)
+	// time.Sleep(time.Second * 2)
 }
