@@ -40,10 +40,8 @@ func Run(path string, size int) {
 		select {
 		case t := <-task:
 			go Worker(t, size, false)
-		case b := <-workdoen:
-			if b {
-				return
-			}
+		case <-workdoen:
+
 		}
 	}
 }
