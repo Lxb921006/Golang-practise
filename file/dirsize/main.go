@@ -41,7 +41,6 @@ func Run(path string, size int) {
 		case t := <-task:
 			go Worker(t, size, false)
 		case b := <-workdoen:
-			fmt.Println("b = ", b)
 			if b {
 				return
 			}
