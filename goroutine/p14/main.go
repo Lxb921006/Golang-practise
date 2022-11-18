@@ -15,8 +15,7 @@ func (p *Pool) Worker(task func()) {
 	defer func() { <-p.Sem }()
 	for {
 		task()
-		// <-p.Work
-
+		task = <-p.Work
 	}
 }
 
@@ -36,12 +35,12 @@ func NewPool(size int) *Pool {
 }
 
 func main() {
-	pool := NewPool(2)
-	for i := 0; i < 20; i++ {
+	pool := NewPool(50)
+	for i := 0; i < 100; i++ {
 		pool.Task(func() {
 			time.Sleep(time.Second)
 			fmt.Printf("goroutine num = %d, time = %v\n", runtime.NumGoroutine(), time.Now())
 		})
 	}
-	// time.Sleep(time.Second * 2)
+	// time.Sleep(time.Second)
 }

@@ -8,16 +8,18 @@ import (
 )
 
 var (
-	task     = make(chan string, 20)
-	workdoen = make(chan bool)
+	task = make(chan string, 20)
+	// workdone = make(chan bool)
+	// finished = make(chan bool)
 )
 
-func Worker(path string, size int, exit bool) {
+func Worker(path string, size int) {
 	fl, err := os.ReadDir(path)
 	if err == nil {
 		for _, file := range fl {
 			if file.IsDir() {
 				task <- path + file.Name() + "/"
+				// workdone <- true
 				// Worker(path+file.Name()+"/", size, false)
 			} else {
 				fz, _ := file.Info()
@@ -27,21 +29,18 @@ func Worker(path string, size int, exit bool) {
 			}
 		}
 	}
-	if exit {
-		workdoen <- true
-		// fmt.Println("finished")
-	}
 }
 
 func Run(path string, size int) {
-	go Worker(path, size, true)
+	go Worker(path, size)
 
 	for {
-		select {
-		case t := <-task:
-			go Worker(t, size, false)
-		case <-workdoen:
-
+		t, k := <-task
+		if k {
+			go Worker(t, size)
+		} else {
+			close(task)
+			break
 		}
 	}
 }
