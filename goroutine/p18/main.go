@@ -62,6 +62,7 @@ func main() {
 
 		for value := range dataCh {
 			if value == Max-1 {
+				log.Println("val = ", value)
 				// The receiver of channel dataCh is
 				// also the sender of stopCh. It is
 				// safe to close the stop channel here.
