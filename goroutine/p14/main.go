@@ -3,7 +3,11 @@ package main
 import (
 	"fmt"
 	"runtime"
-	"time"
+	"sync"
+)
+
+var (
+	wg sync.WaitGroup
 )
 
 type Pool struct {
@@ -12,14 +16,27 @@ type Pool struct {
 }
 
 func (p *Pool) Worker(task func()) {
-	defer func() { <-p.Sem }()
+	// fmt.Println("gn00000000000 = ", runtime.NumGoroutine())
+	defer func() {
+		<-p.Sem
+		wg.Done()
+	}()
+	// for task := range p.Work {
+	// 	task = <-p.Work
+	// 	task()
+
+	// }
+
+	// wg.Done()
 	for {
 		task()
 		task = <-p.Work
+
 	}
 }
 
 func (p *Pool) Task(task func()) {
+	// fmt.Println("gn33333333333 = ", runtime.NumGoroutine())
 	select {
 	case p.Work <- task:
 	case p.Sem <- true:
@@ -36,11 +53,16 @@ func NewPool(size int) *Pool {
 
 func main() {
 	pool := NewPool(50)
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 1000; i++ {
 		pool.Task(func() {
-			time.Sleep(time.Second)
-			fmt.Printf("goroutine num = %d, time = %v\n", runtime.NumGoroutine(), time.Now())
+			defer wg.Done()
+			// time.Sleep(time.Second)
+			fmt.Printf("goroutine num = %d\n", runtime.NumGoroutine())
 		})
+		// fmt.Println("gn111111111111111 = ", runtime.NumGoroutine())
 	}
+	wg.Wait()
+	fmt.Println("finished")
 	// time.Sleep(time.Second)
+
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"runtime"
 	"sync"
 	"time"
 )
@@ -13,16 +14,21 @@ var (
 )
 
 func main() {
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 10000; i++ {
+		c <- 1
 		wg.Add(1)
-		go func(t int) {
-			c <- t
-			fmt.Println("date= ", time.Now().Unix())
-			time.Sleep(time.Second)
-			<-c
-			wg.Done()
-		}(i)
+		go recv(c)
 	}
 	wg.Wait()
 	fmt.Println("finished!!!")
+}
+
+func recv(c chan int) {
+
+	defer wg.Done()
+
+	fmt.Printf("date= %v, gn = %d\n", time.Now().Unix(), runtime.NumGoroutine())
+	time.Sleep(time.Second * 3)
+	<-c
+
 }

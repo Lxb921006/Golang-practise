@@ -9,21 +9,19 @@ import (
 func main() {
 	c1 := make(chan string)
 	c2 := make(chan string)
-
-	go func() {
-		for {
-			c1 <- "lxb"
-			time.Sleep(time.Second / 2)
-		}
-	}()
-
-	go func() {
-		for {
-			v, ok := <-c1
-			if !ok {
-				break
+	for i := 0; i < 10; i++ {
+		go func() {
+			for {
+				c1 <- "lxb"
+				time.Sleep(time.Second / 2)
 			}
-			c2 <- v + "lqm"
+		}()
+	}
+
+	go func() {
+		for {
+			d := <-c1
+			c2 <- d + "lqm"
 			time.Sleep(time.Second * 2)
 		}
 	}()
@@ -31,6 +29,7 @@ func main() {
 	for {
 		select {
 		case c11 := <-c1:
+			// time.Sleep(time.Second * 5)
 			fmt.Println(c11)
 		case c22 := <-c2:
 			fmt.Println(c22)

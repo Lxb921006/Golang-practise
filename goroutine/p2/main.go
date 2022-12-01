@@ -13,12 +13,15 @@ type FindFiles struct {
 	Workers        int
 	MaxWorkers     int
 	Match          int
+	Total          int
 	SearchChan     chan string
 	WorkerDoneChan chan bool
 	ResChan        chan bool
+	TotalChan      chan bool
 }
 
 func (ff *FindFiles) Ergodic(path string, signle bool) {
+	// fmt.Println("gn = ", runtime.NumGoroutine())
 	fl, err := ioutil.ReadDir(path)
 	if err == nil {
 		for _, file := range fl {
@@ -31,6 +34,11 @@ func (ff *FindFiles) Ergodic(path string, signle bool) {
 				} else {
 					ff.Ergodic(path+file.Name()+"/", false)
 				}
+			} else {
+				// if runtime.NumGoroutine() == 22 {
+				// 	fmt.Println(runtime.NumGoroutine())
+				// }
+				ff.TotalChan <- true
 			}
 		}
 	}
@@ -55,6 +63,8 @@ func (ff *FindFiles) Run() {
 				close(ff.ResChan)
 				return
 			}
+		case <-ff.TotalChan:
+			ff.Total++
 		case <-ff.ResChan:
 			ff.Match++
 		}
@@ -71,14 +81,15 @@ func NewFindFiles(path, filename string) *FindFiles {
 		SearchChan:     make(chan string),
 		WorkerDoneChan: make(chan bool),
 		ResChan:        make(chan bool),
+		TotalChan:      make(chan bool),
 	}
 }
 
 func main() {
 	//统计test目录下文件名为test.txt的文件数量, 以及耗时
 	start := time.Now()
-	ff := NewFindFiles("C:/Users/", "test.txt")
+	ff := NewFindFiles("C:/Windows/", "test.txt")
 	// ff := NewFindFiles("C:/Users/Administrator/Desktop/test2/", "test.txt")
 	ff.Run()
-	fmt.Printf("count file = %d,cost time = %v\n", ff.Match, time.Since(start))
+	fmt.Printf("total=%d, count file = %d,cost time = %v\n", ff.Total, ff.Match, time.Since(start))
 }
