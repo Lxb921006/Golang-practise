@@ -1,24 +1,28 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func main() {
-	cc := make(chan int)
-
-	recv := func() {
-		for {
-			fmt.Println(<-cc, "退不出来")
-			cc <- 1
-		}
-	}
-
-	go recv()
-	go recv()
-
-	cc <- 1
-
-	var c chan bool // nil
-	<-c             // blocking here for ever
-
-	fmt.Println("end")
+	c := make(chan int, 2) // a buffered channel
+	c <- 3
+	c <- 5
+	close(c)
+	fmt.Println(len(c), cap(c)) // 2 2
+	x, ok := <-c
+	fmt.Println(x, ok)          // 3 true
+	fmt.Println(len(c), cap(c)) // 1 2
+	x, ok = <-c
+	fmt.Println(x, ok)          // 5 true
+	fmt.Println(len(c), cap(c)) // 0 2
+	x, ok = <-c
+	fmt.Println(x, ok) // 0 false
+	x, ok = <-c
+	fmt.Println(x, ok)          // 0 false
+	fmt.Println(len(c), cap(c)) // 0 2
+	close(c)                    // panic!
+	// The send will also panic if the above
+	// close call is removed.
+	c <- 7
 }

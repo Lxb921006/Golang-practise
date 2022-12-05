@@ -5,15 +5,16 @@ import "fmt"
 func main() {
 	cc := make(chan int)
 
-	recv := func() {
+	recv := func(i int) {
 		for {
 			fmt.Println(<-cc, "退不出来")
-			cc <- 1
+			i++
+			cc <- i
 		}
 	}
 
-	go recv()
-	go recv()
+	go recv(1)
+	go recv(2)
 
 	cc <- 1
 

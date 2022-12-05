@@ -6,6 +6,7 @@ import (
 )
 
 func main() {
+	var c chan bool // nil
 	var ball = make(chan string)
 	kickBall := func(playerName string) {
 		for {
@@ -19,6 +20,6 @@ func main() {
 	go kickBall("Bob")
 	go kickBall("Emily")
 	ball <- "referee" // kick off
-	var c chan bool   // nil
-	<-c               // blocking here for ever
+
+	<-c // blocking here for ever
 }
