@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"runtime"
 	"time"
 )
 
@@ -29,7 +28,7 @@ func Work(path string, size int) {
 				childpath <- path + file.Name() + "/"
 			} else {
 				totalchan <- true
-				fmt.Printf("协程数: %d\n", runtime.NumGoroutine())
+				// fmt.Printf("协程数: %d\n", runtime.NumGoroutine())
 			}
 		}
 	}
@@ -55,8 +54,8 @@ func Run(path string, size int) {
 }
 
 func main() {
-	path := "C:/Users/Administrator/Desktop/test/"
-	// path := "C:/Windows/"
+	// path := "C:/Users/Administrator/Desktop/test/"
+	path := "C:/Windows/"
 	size := 0
 
 	// flag.StringVar(&path, "path", "", "目录名")

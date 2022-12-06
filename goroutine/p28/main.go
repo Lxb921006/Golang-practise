@@ -5,7 +5,7 @@ import "fmt"
 func main() {
 	var c chan struct{} // nil
 
-	fmt.Println(c)
+	// fmt.Println(c)
 
 	select {
 	case c <- struct{}{}: // blocking operation

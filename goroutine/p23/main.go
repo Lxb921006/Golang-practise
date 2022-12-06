@@ -29,5 +29,6 @@ func main() {
 	// Block here until a value is received by
 	// the channel "done".
 	<-done
+
 	fmt.Println("bye")
 }
