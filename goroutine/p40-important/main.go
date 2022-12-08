@@ -4,7 +4,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"runtime"
 	"time"
 )
 
@@ -30,7 +29,6 @@ func getwork() {
 				}
 			}
 		}
-
 	}
 }
 
@@ -62,24 +60,25 @@ func main() {
 			case <-totalChan:
 				total++
 			default:
+				log.Print("total =", total)
 			}
 		}
 	}()
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 20; i++ {
 		go getwork()
 	}
 
 	sendwork(path, true)
 
-	for {
-		if runtime.NumGoroutine() <= 2 {
-			break
-		}
-	}
+	// for {
+	// 	if runtime.NumGoroutine() <= 2 {
+	// 		break
+	// 	}
+	// }
 
-	// var block chan int
-	// <-block
+	var block chan int
+	<-block
 
 	log.Printf("total = %d, cost time = %v", total, time.Since(start))
 

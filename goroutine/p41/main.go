@@ -27,7 +27,8 @@ func sendwork(path string) {
 
 func main() {
 	start := time.Now()
-	path := "C:/Windows/"
+	// path := "C:/Windows/"
+	path := "C:/Users/Administrator/Desktop/test/"
 	sendwork(path)
 	log.Printf("total = %d, cost time = %v", total, time.Since(start))
 }

@@ -34,9 +34,6 @@ func main() {
 	}()
 	FindFile(path, filename, true)
 	wg.Wait()
-	close(MatchChan)
-	// close(MaxWorkersChan)
-	close(TotalChan)
 	fmt.Printf("total = %d, count = %d, cost = %v\n", Total, Match, time.Since(start))
 }
 
