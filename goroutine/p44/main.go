@@ -31,20 +31,24 @@ func getwork(path string) {
 }
 
 func sendwork(path string, finished bool) {
-
 	log.Print("gn22 = ", runtime.NumGoroutine())
-
 	fl, err := os.ReadDir(path)
 	if err == nil {
-
 		for _, file := range fl {
 			if file.IsDir() {
 				wg.Add(1)
 				workers <- 1
-				go getwork(path)
+				go sendwork(path, false)
 				// sendwork(filepath.Join(path, file.Name()), false)
+			} else {
+				totalChan <- 1
 			}
 		}
+	}
+
+	if !finished {
+		wg.Done()
+		<-workers
 	}
 }
 

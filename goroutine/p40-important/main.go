@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"time"
 )
 
@@ -13,43 +14,47 @@ type Bar chan Seat
 var (
 	// wg      sync.WaitGroup
 	work      = make(chan string)
-	workers   = make(chan int, 20)
 	totalChan = make(chan int)
 	total     = 0
 )
 
 func getwork() {
 	for path := range work {
+		// log.Print("gn111 = ", runtime.NumGoroutine())
 		fl, err := os.ReadDir(path)
 		if err == nil {
 			for _, file := range fl {
 				if !file.IsDir() {
 					totalChan <- 1
+					// log.Print(file.Name())
 				}
 			}
 		}
+
 	}
 }
 
 func sendwork(path string, finished bool) {
+	// log.Print("gn222 = ", runtime.NumGoroutine())
 	fl, err := os.ReadDir(path)
 	if err == nil {
-		work <- filepath.Join(path)
+		work <- path
 		for _, file := range fl {
 			if file.IsDir() {
-				go sendwork(filepath.Join(path, file.Name()), false)
+				sendwork(filepath.Join(path, file.Name()), false)
 			}
 		}
 	}
 
-	// if finished {
-	// 	close(work)
-	// }
+	if finished {
+		close(work)
+	}
 }
 
 func main() {
-	path := "C:/Windows/"
 	start := time.Now()
+	path := "C:/Windows/"
+
 	// path := "C:/Users/Administrator/Desktop/test/"
 	go func() {
 		for {
@@ -61,16 +66,20 @@ func main() {
 		}
 	}()
 
-	for i := 0; i < cap(workers); i++ {
+	for i := 0; i < 10; i++ {
 		go getwork()
 	}
 
 	sendwork(path, true)
 
 	for {
-		// log.Print("gn = ", runtime.NumGoroutine())
-		log.Printf("total = %d, cost time = %v", total, time.Since(start))
+		if runtime.NumGoroutine() <= 2 {
+			break
+		}
 	}
+
+	// var block chan int
+	// <-block
 
 	log.Printf("total = %d, cost time = %v", total, time.Since(start))
 

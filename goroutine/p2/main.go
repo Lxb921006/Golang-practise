@@ -77,7 +77,7 @@ func NewFindFiles(path, filename string) *FindFiles {
 		Path:           path,
 		FileName:       filename,
 		Workers:        1,
-		MaxWorkers:     20,
+		MaxWorkers:     10,
 		SearchChan:     make(chan string),
 		WorkerDoneChan: make(chan bool),
 		ResChan:        make(chan bool),

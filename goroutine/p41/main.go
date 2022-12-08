@@ -16,6 +16,7 @@ func sendwork(path string) {
 	if err == nil {
 		for _, file := range fl {
 			if file.IsDir() {
+				log.Print("path = ", filepath.Join(path, file.Name()))
 				sendwork(filepath.Join(path, file.Name()))
 			} else {
 				total++
