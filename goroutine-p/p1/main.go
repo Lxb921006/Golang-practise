@@ -38,11 +38,6 @@ func main() {
 }
 
 func FindFile(path, filename string, s bool) {
-
-	// if !s {
-	// 	<-MaxWorkersChan
-	// }
-
 	fl, err := os.ReadDir(path)
 	if err == nil {
 		for _, file := range fl {
@@ -52,7 +47,6 @@ func FindFile(path, filename string, s bool) {
 			if file.IsDir() {
 				// MaxWorkersChan <- path + file.Name() + "/" //这里超过容量，就会报deadlock!
 				wg.Add(1)
-				// time.Sleep(time.Second)
 				go FindFile(path+file.Name()+"/", filename, false)
 			} else {
 				TotalChan <- true
@@ -61,5 +55,6 @@ func FindFile(path, filename string, s bool) {
 	}
 	if !s {
 		wg.Done()
+		// <-MaxWorkersChan
 	}
 }

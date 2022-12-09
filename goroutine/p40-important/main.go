@@ -19,40 +19,34 @@ var (
 
 func getwork() {
 	for path := range work {
-		// log.Print("gn111 = ", runtime.NumGoroutine())
+		// log.Print("total =", total)
 		fl, err := os.ReadDir(path)
 		if err == nil {
 			for _, file := range fl {
 				if !file.IsDir() {
 					totalChan <- 1
-					// log.Print(file.Name())
 				}
 			}
 		}
+
 	}
 }
 
-func sendwork(path string, finished bool) {
-	// log.Print("gn222 = ", runtime.NumGoroutine())
+func sendwork(path string) {
 	fl, err := os.ReadDir(path)
 	if err == nil {
 		work <- path
 		for _, file := range fl {
 			if file.IsDir() {
-				sendwork(filepath.Join(path, file.Name()), false)
+				sendwork(filepath.Join(path, file.Name()))
 			}
 		}
-	}
-
-	if finished {
-		close(work)
 	}
 }
 
 func main() {
 	start := time.Now()
 	path := "C:/Windows/"
-
 	// path := "C:/Users/Administrator/Desktop/test/"
 	go func() {
 		for {
@@ -60,7 +54,7 @@ func main() {
 			case <-totalChan:
 				total++
 			default:
-				log.Print("total =", total)
+
 			}
 		}
 	}()
@@ -69,16 +63,12 @@ func main() {
 		go getwork()
 	}
 
-	sendwork(path, true)
+	sendwork(path)
 
-	// for {
-	// 	if runtime.NumGoroutine() <= 2 {
-	// 		break
-	// 	}
-	// }
+	select {}
 
-	var block chan int
-	<-block
+	// var block chan int
+	// <-block //block here
 
 	log.Printf("total = %d, cost time = %v", total, time.Since(start))
 

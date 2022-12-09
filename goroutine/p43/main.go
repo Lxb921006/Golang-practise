@@ -4,7 +4,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"runtime"
 	"sync"
 	"time"
 )
@@ -16,23 +15,35 @@ var (
 	total     = 0
 )
 
-func sendwork(path string, finished bool) {
-	log.Print("gn22 = ", runtime.NumGoroutine())
+func getwork(path string) {
+	// log.Print("gn11 = ", runtime.NumGoroutine())
+	defer wg.Done()
 	fl, err := os.ReadDir(path)
 	if err == nil {
 		for _, file := range fl {
-			if file.IsDir() {
-				wg.Add(1)
-				workers <- 1
-				go sendwork(filepath.Join(path, file.Name()), false)
-			} else {
+			// log.Print("file = ", file.Name())
+			if file.Name() == "ccc.log" {
 				totalChan <- 1
 			}
 		}
 	}
-	if !finished {
-		wg.Done()
-		<-workers
+	<-workers
+}
+
+func sendwork(path string, finished bool) {
+
+	// log.Print("gn22 = ", runtime.NumGoroutine())
+
+	fl, err := os.ReadDir(path)
+	if err == nil {
+		wg.Add(1)
+		workers <- 1
+		go getwork(path)
+		for _, file := range fl {
+			if file.IsDir() {
+				sendwork(filepath.Join(path, file.Name()), false)
+			}
+		}
 	}
 }
 
@@ -46,8 +57,7 @@ func main() {
 			case <-totalChan:
 				total++
 			default:
-				log.Print("total = ", total)
-				log.Print("gn333 = ", runtime.NumGoroutine())
+				// log.Print("total = ", total)
 			}
 		}
 	}()

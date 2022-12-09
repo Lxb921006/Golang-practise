@@ -3,53 +3,48 @@ package main
 import (
 	"log"
 	"os"
+	"path/filepath"
 	"runtime"
-	"sync"
 	"time"
 )
 
+type Seat int
+type Bar chan Seat
+
 var (
-	wg        sync.WaitGroup
-	workers   = make(chan int, 20)
+	// wg      sync.WaitGroup
+	work      = make(chan string)
 	totalChan = make(chan int)
+	workers   = make(chan int, 20)
 	total     = 0
 )
 
-func getwork(path string) {
-	// log.Print("gn11 = ", runtime.NumGoroutine())
-	defer wg.Done()
-	fl, err := os.ReadDir(path)
-	if err == nil {
-		for _, file := range fl {
-			// log.Print("file = ", file.Name())
-			if file.Name() == "ccc.log" {
-				totalChan <- 1
-			}
+func getwork() {
+	// for path := range work {
+	// 	workers <- 1
+	// 	go sendwork(path)
+	// }
+
+	for {
+		select {
+		case path := <-work:
+			go sendwork(path)
 		}
 	}
-	<-workers
 }
 
-func sendwork(path string, finished bool) {
-	log.Print("gn22 = ", runtime.NumGoroutine())
+func sendwork(path string) {
 	fl, err := os.ReadDir(path)
 	if err == nil {
 		for _, file := range fl {
 			if file.IsDir() {
-				wg.Add(1)
-				workers <- 1
-				go sendwork(path, false)
-				// sendwork(filepath.Join(path, file.Name()), false)
+				work <- filepath.Join(path, file.Name())
 			} else {
 				totalChan <- 1
 			}
 		}
 	}
-
-	if !finished {
-		wg.Done()
-		<-workers
-	}
+	<-workers
 }
 
 func main() {
@@ -62,12 +57,17 @@ func main() {
 			case <-totalChan:
 				total++
 			default:
-				// log.Print("total = ", total)
+				log.Print("total =", runtime.NumGoroutine())
 			}
 		}
 	}()
 
-	sendwork(path, true)
-	wg.Wait()
+	go sendwork(path)
+
+	getwork()
+
+	select {}
+
 	log.Printf("total = %d, cost time = %v", total, time.Since(start))
+
 }

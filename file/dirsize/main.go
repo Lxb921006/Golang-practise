@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"runtime"
 	"time"
 )
 
@@ -28,7 +29,7 @@ func Work(path string, size int) {
 				childpath <- path + file.Name() + "/"
 			} else {
 				totalchan <- true
-				// fmt.Printf("协程数: %d\n", runtime.NumGoroutine())
+				fmt.Printf("协程数: %d\n", runtime.NumGoroutine())
 			}
 		}
 	}
