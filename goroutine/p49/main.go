@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
+	"runtime"
 	"time"
 )
 
@@ -28,4 +30,9 @@ func main() {
 	case rnd = <-source():
 	}
 	fmt.Println(rnd)
+
+	for {
+		time.Sleep(time.Second)
+		log.Print("gn = ", runtime.NumGoroutine())
+	}
 }

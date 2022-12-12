@@ -2,6 +2,8 @@ package main
 
 import "fmt"
 
+// 如果有一个或多个非阻塞case操作，Go运行时会随机选择其中一个非阻塞操作执行，然后继续执行相应的case分支
+
 func main() {
 	c := make(chan struct{})
 	close(c)

@@ -9,6 +9,7 @@ func main() {
 	//当没有使用goroutine时，无缓冲通道必须要有接受才能发送，否则发成死锁
 	// i := 1
 	c := make(chan int, 2)
+	c <- 1
 	<-c
 	// c <- 1
 	// c <- 2
