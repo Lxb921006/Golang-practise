@@ -17,23 +17,23 @@ func requestWithTimeout(timeout time.Duration) (int, error) {
 	select {
 	case data := <-c:
 		return data, nil
-	case <-time.After(timeout):
+	case <-time.After(timeout * time.Second):
+		log.Print("111")
 		return 0, errors.New("timeout")
 	}
 }
 
 func doRequest(c chan<- int) {
-	ra := rand.Intn(2) + 1 //随机1-10s
+	ra := rand.Intn(5) + 1
 	log.Print("start")
 	time.Sleep(time.Duration(ra) * time.Second)
-	c <- 10086
+	c <- 10068
 	log.Print("end")
-
 }
 func main() {
 	rand.Seed(time.Now().UnixNano())
 
-	res, err := requestWithTimeout(3)
+	res, err := requestWithTimeout(2)
 
 	time.Sleep(5 * time.Second)
 

@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"time"
 )
 
@@ -19,7 +20,6 @@ var (
 
 func getwork() {
 	for path := range work {
-		// log.Print("total =", total)
 		fl, err := os.ReadDir(path)
 		if err == nil {
 			for _, file := range fl {
@@ -28,19 +28,22 @@ func getwork() {
 				}
 			}
 		}
-
 	}
 }
 
-func sendwork(path string) {
+func sendwork(path string, exit bool) {
 	fl, err := os.ReadDir(path)
 	if err == nil {
 		work <- path
 		for _, file := range fl {
 			if file.IsDir() {
-				sendwork(filepath.Join(path, file.Name()))
+				sendwork(filepath.Join(path, file.Name()), false)
 			}
 		}
+	}
+
+	if exit {
+		close(work)
 	}
 }
 
@@ -63,9 +66,13 @@ func main() {
 		go getwork()
 	}
 
-	sendwork(path)
+	sendwork(path, true)
 
-	select {}
+	for {
+		if runtime.NumGoroutine() <= 2 {
+			break
+		}
+	}
 
 	// var block chan int
 	// <-block //block here

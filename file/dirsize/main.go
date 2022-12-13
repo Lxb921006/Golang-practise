@@ -9,7 +9,7 @@ import (
 
 var (
 	childpath = make(chan string)
-	// workers   = make(chan bool, 20)
+	workers   = make(chan bool, 20)
 	finished  = make(chan bool)
 	totalchan = make(chan bool)
 	done      = 1
@@ -33,6 +33,8 @@ func Work(path string, size int) {
 			}
 		}
 	}
+
+	<-workers
 }
 
 func Run(path string, size int) {
@@ -42,6 +44,7 @@ func Run(path string, size int) {
 		select {
 		case t := <-childpath:
 			done++
+			workers <- true
 			go Work(t, size)
 		case <-finished:
 			done--
