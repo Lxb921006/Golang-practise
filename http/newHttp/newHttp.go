@@ -123,6 +123,6 @@ func NewHttpRe(url string, params, headers map[string]interface{}, tt int) *Http
 		Url:     url,
 		Params:  params,
 		Headers: headers,
-		Timeout: tt,
+		Timeout: 5,
 	}
 }
