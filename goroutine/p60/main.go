@@ -31,8 +31,8 @@ func main() {
 	stop := func() {
 		select {
 		case closing <- struct{}{}:
-
 			<-closed
+			// log.Println("ttttttttttttttttttttttttttttttttttttttttt")
 		case <-closed:
 		}
 	}
@@ -63,6 +63,7 @@ func main() {
 
 			select {
 			case <-closing:
+				log.Println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 				return
 			case dataCh <- rand.Intn(Max):
 			}

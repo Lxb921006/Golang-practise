@@ -7,15 +7,14 @@ type User struct {
 }
 
 func main() {
-	m := make(map[string]User)
-	u := User{}
-	vd, ok := m["user"]
+	var m = make(map[string]interface{})
+
+	// m["name"] = "lxb"
+
+	v, ok := m["name"]
 	if !ok {
-		u.Name = "lxb"
-		m["user"] = u
-		vd = m["user"]
+		fmt.Println("null")
+	} else {
+		fmt.Println(v)
 	}
-
-	fmt.Println("vd = ", vd.Name)
-
 }
