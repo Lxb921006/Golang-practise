@@ -118,8 +118,6 @@ func (nh *HttpRe) NewRequest(method string, params io.Reader) (data []byte, err 
 
 	//响应体
 	data, err = io.ReadAll(resp.Body)
-
-	// data, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
 		err = fmt.Errorf("获取响应数据失败, esg = %v", err)
 		return
