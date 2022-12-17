@@ -11,8 +11,6 @@ import (
 	"time"
 )
 
-//
-
 type HttpRe struct {
 	Url     string                 `json:"url"`
 	Params  map[string]interface{} `json:"params"`
