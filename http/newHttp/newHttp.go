@@ -8,6 +8,8 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 )
 
@@ -53,17 +55,32 @@ func (nh *HttpRe) GET() (data []byte, err error) {
 }
 
 func (nh *HttpRe) FormatParams() (data interface{}, err error) {
-	if _, ok := nh.Headers["content-type"]; !ok {
+	switch nh.Headers["content-type"] {
+	case "application/x-www-form-urlencoded":
+		vv := url.Values{}
+		for k, v := range nh.Params {
+			vv.Set(k, v.(string))
+		}
+
+		data = strings.NewReader(vv.Encode())
+	case "application/json":
+		b, errs := json.Marshal(&nh.Params)
+		if errs != nil {
+			err = fmt.Errorf("序列化参数错误, %v", errs)
+			return
+		}
+
+		data = bytes.NewReader(b)
+	default:
 		nh.Headers["content-type"] = "application/json"
-	}
+		b, errs := json.Marshal(&nh.Params)
+		if errs != nil {
+			err = fmt.Errorf("序列化参数错误, %v", errs)
+			return
+		}
 
-	b, err := json.Marshal(&nh.Params)
-	if err != nil {
-		err = fmt.Errorf("序列化参数错误, %v", err)
-		return
+		data = bytes.NewReader(b)
 	}
-
-	data = bytes.NewReader(b)
 
 	return
 

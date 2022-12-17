@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -14,11 +15,11 @@ func main() {
 	var params = make(map[string]interface{})
 	v := url.Values{}
 
-	request_url := "http://api.btstu.cn/qqol/api.php?qq=10001"
+	request_url := "http://127.0.0.1:9293/login"
 	// request_url := "https://api.xwteam.cn/api/qq/music"
 
-	params["qq"] = "120332269"
-	// params["password"] = "12332"
+	params["user"] = "lxb"
+	params["password"] = "12332"
 
 	b, _ := json.Marshal(&params)
 
@@ -26,13 +27,13 @@ func main() {
 		Timeout: time.Duration(4) * time.Second,
 	}
 
-	// hr, err := http.NewRequest("GET", request_url, bytes.NewReader(b))
+	// hr, err := http.NewRequest("POST", request_url, bytes.NewReader(b))
 
-	v.Set("qq", "120332269")
-	// v.Set("password", "12332")
-	// p := v.Encode()
+	v.Set("user", "120332269")
+	v.Set("password", "12332")
+	p := v.Encode()
 
-	hr, err := http.NewRequest("GET", request_url, nil)
+	hr, err := http.NewRequest("POST", request_url, strings.NewReader(p))
 	if err != nil {
 		log.Print("req error=>", err)
 		return
