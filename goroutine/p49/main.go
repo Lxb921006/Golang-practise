@@ -23,7 +23,7 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 
 	var rnd int32
-	// Blocking here until one source responses.
+	// Blocking here until one source responses. 这里会发生内存泄漏，有两个goroutine永远挂起
 	select {
 	case rnd = <-source():
 	case rnd = <-source():
