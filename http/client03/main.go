@@ -105,7 +105,9 @@ func (d *DownloadLog) DownloadToLocal(params ...string) (err error) {
 
 func (d *DownloadLog) WriteToFile(url string) (err error) {
 	urlGz := strings.Split(url, "?")[0]
-	filename := filepath.Join("C:/Users/Administrator/Desktop", filepath.Base(urlGz))
+	curPath, _ := os.Getwd()
+
+	filename := filepath.Join(curPath, filepath.Base(urlGz))
 
 	var data = make(map[string]interface{})
 	var headers = make(map[string]interface{})
