@@ -13,7 +13,7 @@ func main() {
 	timeout := 5
 	params["user"] = "lxb"
 	params["password"] = "123321"
-	// headers["content-type"] = "application/x-www-form-urlencoded"
+	headers["content-type"] = "application/x-www-form-urlencoded"
 
 	nh := newHttp.NewHttpRe(url, params, headers, timeout)
 	data, err := nh.POST()

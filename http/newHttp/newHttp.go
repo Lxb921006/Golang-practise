@@ -44,6 +44,7 @@ func (nh *HttpRe) GET() (data []byte, err error) {
 	}
 
 	data, err = nh.NewRequest("GET", fd.(io.Reader))
+
 	if err != nil {
 		return
 	}
@@ -108,6 +109,7 @@ func (nh *HttpRe) NewRequest(method string, params io.Reader) (data []byte, err 
 		return
 	}
 
+	//请求头
 	nh.hr.Header.Add("content-type", nh.Headers["content-type"].(string))
 
 	resp, err := nh.client.Do(nh.hr)
