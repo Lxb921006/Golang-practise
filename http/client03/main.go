@@ -22,6 +22,9 @@ type DownloadLog struct {
 	uid       string
 	accessKey string
 	url       string
+	work      chan string
+	failed    chan string
+	Maxworker int
 }
 
 func (d *DownloadLog) CreateNonce() string {
@@ -85,15 +88,38 @@ func (d *DownloadLog) DownloadToLocal(params ...string) (err error) {
 		return
 	}
 
+	const MaxWorkers = 20
+	downloadPath1 := "C:/Users/Administrator/Desktop/log"
+
+	go func() {
+		for v := range <-d.failed {
+			log.Print("download failed = ", v)
+		}
+	}()
+
+	for range [MaxWorkers]struct{}{} {
+		go d.WriteToFile(downloadPath1)
+	}
+
 	for i := 0; i < len(data["data"].([]interface{})); i++ {
-		for k1, v1 := range data["data"].([]interface{})[i].(map[string]interface{}) {
-			if k1 == "date" {
-				log.Printf("%v = %v", k1, v1)
+		date := data["data"].([]interface{})[i].(map[string]interface{})["date"].(string)
+		downloadPath2 := filepath.Join(downloadPath1, date)
+		_, err = os.Stat(downloadPath2)
+		if err != nil {
+			if os.IsNotExist(err) {
+				err = os.Mkdir(downloadPath2, 0777)
+				if err != nil {
+					return
+				}
 			}
+		}
+
+		for k1, v1 := range data["data"].([]interface{})[i].(map[string]interface{}) {
 			if k1 == "urls" {
 				for _, v2 := range v1.([]interface{}) {
-					log.Print(v2)
-					d.WriteToFile(v2.(string))
+					url := v2.(string)
+					data := url + "+" + date
+					d.work <- data
 					break
 				}
 			}
@@ -103,29 +129,29 @@ func (d *DownloadLog) DownloadToLocal(params ...string) (err error) {
 	return
 }
 
-func (d *DownloadLog) WriteToFile(url string) (err error) {
-	urlGz := strings.Split(url, "?")[0]
-	curPath, _ := os.Getwd()
+func (d *DownloadLog) WriteToFile(path string) {
+	for v := range d.work {
+		url := strings.Split(v, "+")[0]
+		date := strings.Split(v, "+")[1]
+		urlGz := strings.Split(url, "?")[0]
+		filename := filepath.Join(filepath.Join(path, date), filepath.Base(urlGz))
 
-	filename := filepath.Join(curPath, filepath.Base(urlGz))
+		var data = make(map[string]interface{})
+		var headers = make(map[string]interface{})
 
-	var data = make(map[string]interface{})
-	var headers = make(map[string]interface{})
-
-	nh := newHttp.NewHttpRe(url, data, headers, 4)
-	resp, err := nh.GET()
-	if err != nil {
-		return
+		nh := newHttp.NewHttpRe(url, data, headers, 4)
+		resp, err := nh.GET()
+		if err == nil {
+			fn, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND, 0777)
+			if err == nil {
+				fn.WriteString(string(resp))
+			} else {
+				d.failed <- url
+			}
+		} else {
+			d.failed <- url
+		}
 	}
-
-	fn, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND, 0777)
-	if err != nil {
-		return
-	}
-
-	fn.WriteString(string(resp))
-
-	return
 }
 
 func NewDownloadLog(url string) *DownloadLog {
@@ -133,6 +159,7 @@ func NewDownloadLog(url string) *DownloadLog {
 		uid:       "maiyou",
 		accessKey: "XcaLL4fMkkSsnIcoyhq6aSFC8QXKkKpo0rYI3TvaGutjF70blSRZrXpzw0PSrGu4",
 		url:       url,
+		work:      make(chan string),
 	}
 }
 
