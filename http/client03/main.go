@@ -13,9 +13,14 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Lxb921006/Golang-practise/http/newHttp"
+)
+
+var (
+	wg sync.WaitGroup
 )
 
 type DownloadLog struct {
@@ -89,7 +94,9 @@ func (d *DownloadLog) DownloadToLocal(params ...string) (err error) {
 	}
 
 	const MaxWorkers = 20
-	downloadPath1 := "C:/Users/Administrator/Desktop/log"
+	wg.Add(20)
+	// downloadPath1 := "C:/Users/Administrator/Desktop/log"
+	downloadPath1 := "/Users/liaoxuanbiao/Downloads/log"
 
 	go func() {
 		for v := range <-d.failed {
@@ -107,7 +114,7 @@ func (d *DownloadLog) DownloadToLocal(params ...string) (err error) {
 		_, err = os.Stat(downloadPath2)
 		if err != nil {
 			if os.IsNotExist(err) {
-				err = os.Mkdir(downloadPath2, 0777)
+				err = os.MkdirAll(downloadPath2, 0777)
 				if err != nil {
 					return
 				}
@@ -120,16 +127,16 @@ func (d *DownloadLog) DownloadToLocal(params ...string) (err error) {
 					url := v2.(string)
 					data := url + "+" + date
 					d.work <- data
-					break
 				}
 			}
 		}
 	}
-
+	close(d.work)
 	return
 }
 
 func (d *DownloadLog) WriteToFile(path string) {
+	defer wg.Done()
 	for v := range d.work {
 		url := strings.Split(v, "+")[0]
 		date := strings.Split(v, "+")[1]
@@ -138,7 +145,6 @@ func (d *DownloadLog) WriteToFile(path string) {
 
 		var data = make(map[string]interface{})
 		var headers = make(map[string]interface{})
-
 		nh := newHttp.NewHttpRe(url, data, headers, 4)
 		resp, err := nh.GET()
 		if err == nil {
@@ -152,6 +158,10 @@ func (d *DownloadLog) WriteToFile(path string) {
 			d.failed <- url
 		}
 	}
+}
+
+func (d *DownloadLog) UnGz(file string) {
+
 }
 
 func NewDownloadLog(url string) *DownloadLog {
@@ -170,5 +180,5 @@ func main() {
 		log.Print(err)
 		return
 	}
-
+	wg.Wait()
 }
