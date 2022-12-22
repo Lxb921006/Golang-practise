@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"math/rand"
+	"runtime"
 	"strconv"
 	"sync"
 	"time"
@@ -17,7 +18,7 @@ func main() {
 	// ...
 	const Max = 100000
 	const NumReceivers = 10
-	const NumSenders = 1000
+	const NumSenders = 30
 
 	wgReceivers := sync.WaitGroup{}
 	wgReceivers.Add(NumReceivers)
@@ -50,6 +51,8 @@ func main() {
 	for i := 0; i < NumSenders; i++ {
 		go func(id string) {
 			for {
+				log.Print("gn11111111 = ", runtime.NumGoroutine())
+				time.Sleep(time.Duration(rand.Intn(10) * int(time.Second)))
 				value := rand.Intn(Max)
 				if value == 0 {
 					// Here, the try-send operation is
@@ -131,7 +134,7 @@ func main() {
 						}
 						return
 					}
-
+					//do something
 					log.Println(value)
 				}
 			}

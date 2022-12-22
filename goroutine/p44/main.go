@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"time"
 )
 
 type Seat int
@@ -48,7 +47,7 @@ func sendwork(path string) {
 }
 
 func main() {
-	start := time.Now()
+
 	path := "C:/Windows/"
 	// path := "C:/Users/Administrator/Desktop/test/"
 	go func() {
@@ -67,7 +66,5 @@ func main() {
 	getwork()
 
 	select {}
-
-	log.Printf("total = %d, cost time = %v", total, time.Since(start))
 
 }

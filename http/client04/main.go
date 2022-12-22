@@ -10,31 +10,21 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"runtime"
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/Lxb921006/Golang-practise/extract"
 	"github.com/Lxb921006/Golang-practise/http/newHttp"
 )
 
-var (
-	wg sync.WaitGroup
-)
-
 type DownloadLog struct {
-	uid            string
-	accessKey      string
-	url            string
-	downloadWork   chan string
-	ungzWork       chan string
-	downloadFailed chan string
-	ungzFailed     chan string
-	toStop         chan string
-	Maxworker      int
+	uid       string
+	accessKey string
+	url       string
+
+	Maxworker int
 }
 
 func (d *DownloadLog) CreateNonce() string {
@@ -98,36 +88,9 @@ func (d *DownloadLog) DownloadToLocal(params ...string) (err error) {
 		return
 	}
 
-	const MaxWorkers = 20
-	wg.Add(20)
 	downloadPath1 := "C:/Users/Administrator/Desktop/log"
+
 	// downloadPath1 := "/Users/liaoxuanbiao/Downloads/log"
-
-	//最多会有44goroutine,使用runtime.NumGoroutine()可以查看
-
-	//打印下载失败的url
-	go func() {
-		for v := range <-d.downloadFailed {
-			log.Print("download failed = ", v)
-		}
-	}()
-
-	//打印解压失败的文件
-	go func() {
-		for v := range <-d.ungzFailed {
-			log.Print("ungz failed = ", v)
-		}
-	}()
-
-	// 20个下载goroutine
-	for i := 0; i < MaxWorkers; i++ {
-		go d.WriteToFile(downloadPath1)
-	}
-
-	// 20个解压goroutine
-	for i := 0; i < MaxWorkers; i++ {
-		go d.UnGz()
-	}
 
 	for i := 0; i < len(data["data"].([]interface{})); i++ {
 		date := data["data"].([]interface{})[i].(map[string]interface{})["date"].(string)
@@ -147,98 +110,69 @@ func (d *DownloadLog) DownloadToLocal(params ...string) (err error) {
 				for _, v2 := range v1.([]interface{}) {
 					url := v2.(string)
 					data := url + "+" + date
-					d.downloadWork <- data
+					d.WriteToFile(data, downloadPath1)
 				}
 			}
 		}
 	}
-	//到这里可以确保不再往管道发送数据，可以关闭，遵循关闭管道原则
-	close(d.downloadWork)
+
 	return
 }
 
-func (d *DownloadLog) WriteToFile(path string) {
-	defer func() { d.toStop <- "stop" }() //这里是确保所有文件下载并解压完成后发送信号给toStop停止接受数据
+func (d *DownloadLog) WriteToFile(v, path string) {
 
-	for v := range d.downloadWork {
-		url := strings.Split(v, "+")[0]
-		date := strings.Split(v, "+")[1]
-		urlGz := strings.Split(url, "?")[0]
-		filename := filepath.Join(filepath.Join(path, date), filepath.Base(urlGz))
+	url := strings.Split(v, "+")[0]
+	date := strings.Split(v, "+")[1]
+	urlGz := strings.Split(url, "?")[0]
+	filename := filepath.Join(filepath.Join(path, date), filepath.Base(urlGz))
 
-		var data = make(map[string]interface{})
-		var headers = make(map[string]interface{})
-		nh := newHttp.NewHttpRe(url, data, headers, 4)
-		resp, err := nh.GET()
+	var data = make(map[string]interface{})
+	var headers = make(map[string]interface{})
+	nh := newHttp.NewHttpRe(url, data, headers, 4)
+	resp, err := nh.GET()
+	if err == nil {
+		fn, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND, 0777)
 		if err == nil {
-			fn, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND, 0777)
+			//写入到文件
+			_, err = fn.WriteString(string(resp))
 			if err == nil {
-				//写入到文件
-				_, err = fn.WriteString(string(resp))
-				if err == nil {
-					//解压
-					log.Print("goroutine num222222 = ", runtime.NumGoroutine())
-					d.ungzWork <- filename
-				} else {
-					d.downloadFailed <- url
-				}
+				//解压
+				d.UnGz(filename)
 			} else {
-				d.downloadFailed <- url
+				log.Print("write failed = ", filename)
 			}
 		} else {
-			d.downloadFailed <- url
+			log.Print("download failed = ", url)
 		}
+	} else {
+		log.Print("download failed = ", url)
 	}
 }
 
-func (d *DownloadLog) UnGz() {
-	defer wg.Done()
-
-	for {
-		select {
-		case <-d.toStop:
-			return
-		default:
-		}
-
-		select {
-		case <-d.toStop:
-			return
-		case file := <-d.ungzWork:
-			unGz := extract.NewUngz(file)
-			err := unGz.UngzFile()
-			if err != nil {
-				d.ungzFailed <- file
-			}
-		}
+func (d *DownloadLog) UnGz(file string) {
+	unGz := extract.NewUngz(file)
+	err := unGz.UngzFile()
+	if err != nil {
+		log.Print("ungz failed = ", file)
 	}
+
 }
 
 func NewDownloadLog(url string) *DownloadLog {
 	return &DownloadLog{
-		uid:            "maiyou",
-		accessKey:      "XcaLL4fMkkSsnIcoyhq6aSFC8QXKkKpo0rYI3TvaGutjF70blSRZrXpzw0PSrGu4",
-		url:            url,
-		downloadWork:   make(chan string),
-		downloadFailed: make(chan string),
-		ungzWork:       make(chan string),
-		ungzFailed:     make(chan string),
-		toStop:         make(chan string, 1),
+		uid:       "maiyou",
+		accessKey: "XcaLL4fMkkSsnIcoyhq6aSFC8QXKkKpo0rYI3TvaGutjF70blSRZrXpzw0PSrGu4",
+		url:       url,
 	}
 }
 
 func main() {
 	start := time.Now()
 	url := "https://openapi.wangjuyunlian.com/api/v1/log/list?"
-	nd := NewDownloadLog(url)
-	err := nd.DownloadToLocal("us-cdn-static.burstedgold.com", "2022-12-15", "2022-12-17")
+	err := NewDownloadLog(url).DownloadToLocal("us-cdn-static.burstedgold.com", "2022-12-15", "2022-12-17")
 	if err != nil {
 		log.Print(err)
 		return
 	}
-	wg.Wait()
 	log.Print("cost time = ", time.Since(start))
-
-	close(nd.downloadFailed)
-	close(nd.ungzFailed)
 }
