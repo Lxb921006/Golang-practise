@@ -46,6 +46,9 @@ func main() {
 	v.Set("sign", sign)
 	v.Add("uid", uid)
 	v.Add("nonce", nonce)
+	v.Add("domain", "us-cdn-static.burstedgold.com")
+	v.Add("start", "2022-12-15")
+	v.Add("end", "2022-12-17")
 	v.Add("timestamp", strconv.Itoa(int(time.Now().Unix())))
 	splice := v.Encode()
 

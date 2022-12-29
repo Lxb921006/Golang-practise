@@ -19,6 +19,7 @@ type HttpRe struct {
 	Timeout int                    `json:"timeout"`
 	client  *http.Client
 	hr      *http.Request
+	resp    *http.Response
 }
 
 func (nh *HttpRe) POST() (data []byte, err error) {
@@ -32,7 +33,7 @@ func (nh *HttpRe) POST() (data []byte, err error) {
 		return
 	}
 
-	defer nh.hr.Body.Close()
+	defer nh.resp.Body.Close()
 
 	return
 }
@@ -49,7 +50,7 @@ func (nh *HttpRe) GET() (data []byte, err error) {
 		return
 	}
 
-	defer nh.hr.Body.Close()
+	defer nh.resp.Body.Close()
 
 	return
 }
@@ -112,21 +113,21 @@ func (nh *HttpRe) NewRequest(method string, params io.Reader) (data []byte, err 
 	//请求头
 	nh.hr.Header.Add("content-type", nh.Headers["content-type"].(string))
 
-	resp, err := nh.client.Do(nh.hr)
+	nh.resp, err = nh.client.Do(nh.hr)
 	if err != nil {
 		err = fmt.Errorf("请求失败, esg = %v", err)
 		return
 	}
 
 	//响应体
-	data, err = io.ReadAll(resp.Body)
+	data, err = io.ReadAll(nh.resp.Body)
 	if err != nil {
 		err = fmt.Errorf("获取响应数据失败, esg = %v", err)
 		return
 	}
 
 	//状态码
-	if resp.StatusCode != 200 {
+	if nh.resp.StatusCode != 200 {
 		err = errors.New(string(data))
 		return
 	}
