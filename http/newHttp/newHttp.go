@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 )
 
 type HttpRe struct {
@@ -38,11 +37,13 @@ func (nh *HttpRe) POST() (data []byte, err error) {
 	return
 }
 
-func (nh *HttpRe) GET() (data []byte, err error) {
+func (nh *HttpRe) GET(client *http.Client) (data []byte, err error) {
 	fd, err := nh.FormatParams()
 	if err != nil {
 		return
 	}
+
+	nh.client = client
 
 	data, err = nh.NewRequest("GET", fd.(io.Reader))
 
@@ -88,9 +89,10 @@ func (nh *HttpRe) FormatParams() (data interface{}, err error) {
 }
 
 func (nh *HttpRe) NewRequest(method string, params io.Reader) (data []byte, err error) {
-	nh.client = &http.Client{
-		Timeout: time.Duration(nh.Timeout) * time.Second,
-	}
+	// //超时设置
+	// nh.client = &http.Client{
+	// 	Timeout: time.Duration(nh.Timeout) * time.Second,
+	// }
 
 	switch method {
 	case "POST":
@@ -113,13 +115,13 @@ func (nh *HttpRe) NewRequest(method string, params io.Reader) (data []byte, err 
 	//请求头
 	nh.hr.Header.Add("content-type", nh.Headers["content-type"].(string))
 
+	//响应
 	nh.resp, err = nh.client.Do(nh.hr)
 	if err != nil {
 		err = fmt.Errorf("请求失败, esg = %v", err)
 		return
 	}
 
-	//响应体
 	data, err = io.ReadAll(nh.resp.Body)
 	if err != nil {
 		err = fmt.Errorf("获取响应数据失败, esg = %v", err)

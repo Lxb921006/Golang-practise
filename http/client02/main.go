@@ -5,6 +5,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"log"
+	"net/http"
 	"net/url"
 	"sort"
 	"strconv"
@@ -12,6 +13,20 @@ import (
 	"time"
 
 	"github.com/Lxb921006/Golang-practise/http/newHttp"
+)
+
+var (
+	client = &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns:          1,
+			MaxIdleConnsPerHost:   1,
+			MaxConnsPerHost:       1,
+			IdleConnTimeout:       90 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ExpectContinueTimeout: 1 * time.Second,
+		},
+		Timeout: time.Duration(10) * time.Second,
+	}
 )
 
 func main() {
@@ -55,7 +70,7 @@ func main() {
 	url := "https://openapi.wangjuyunlian.com/api/v1/log/list?" + splice
 
 	nh := newHttp.NewHttpRe(url, params, headers, 4)
-	data, err := nh.GET()
+	data, err := nh.GET(client)
 	if err != nil {
 		log.Print(err)
 		return

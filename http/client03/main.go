@@ -7,10 +7,10 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
-	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -22,13 +22,25 @@ import (
 )
 
 var (
-	wg sync.WaitGroup
+	wg     sync.WaitGroup
+	client = &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns:          1,
+			MaxIdleConnsPerHost:   1,
+			MaxConnsPerHost:       1,
+			IdleConnTimeout:       90 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ExpectContinueTimeout: 1 * time.Second,
+		},
+		Timeout: time.Duration(10) * time.Second,
+	}
 )
 
 type DownloadLog struct {
 	uid            string
 	accessKey      string
 	url            string
+	Path           string
 	downloadWork   chan string
 	ungzWork       chan string
 	downloadFailed chan string
@@ -73,7 +85,7 @@ func (d *DownloadLog) RequestApi(params ...string) (resp []byte, err error) {
 
 	url := d.url + v.Encode()
 	nh := newHttp.NewHttpRe(url, data, headers, 4)
-	resp, err = nh.GET()
+	resp, err = nh.GET(client)
 	if err != nil {
 		return
 	}
@@ -82,7 +94,11 @@ func (d *DownloadLog) RequestApi(params ...string) (resp []byte, err error) {
 }
 
 func (d *DownloadLog) DownloadToLocal(params ...string) (err error) {
+	const MaxWorkers = 20
+	wg.Add(20)
+	downloadPath1 := params[3]
 	var data = make(map[string]interface{})
+
 	resp, err := d.RequestApi(params[0], params[1], params[2])
 	if err != nil {
 		return
@@ -97,13 +113,6 @@ func (d *DownloadLog) DownloadToLocal(params ...string) (err error) {
 		err = errors.New(data["msg"].(string))
 		return
 	}
-
-	const MaxWorkers = 20
-	wg.Add(20)
-	downloadPath1 := "C:/Users/Administrator/Desktop/log"
-	// downloadPath1 := "/Users/liaoxuanbiao/Downloads/log"
-
-	//最多会有44goroutine,使用runtime.NumGoroutine()可以查看
 
 	//打印下载失败的url
 	go func() {
@@ -120,12 +129,12 @@ func (d *DownloadLog) DownloadToLocal(params ...string) (err error) {
 	}()
 
 	// 20个下载goroutine
-	for i := 0; i < MaxWorkers; i++ {
+	for range [MaxWorkers]struct{}{} {
 		go d.WriteToFile(downloadPath1)
 	}
 
 	// 20个解压goroutine
-	for i := 0; i < MaxWorkers; i++ {
+	for range [MaxWorkers]struct{}{} {
 		go d.UnGz()
 	}
 
@@ -141,7 +150,6 @@ func (d *DownloadLog) DownloadToLocal(params ...string) (err error) {
 				}
 			}
 		}
-
 		for k1, v1 := range data["data"].([]interface{})[i].(map[string]interface{}) {
 			if k1 == "urls" {
 				for _, v2 := range v1.([]interface{}) {
@@ -169,7 +177,7 @@ func (d *DownloadLog) WriteToFile(path string) {
 		var data = make(map[string]interface{})
 		var headers = make(map[string]interface{})
 		nh := newHttp.NewHttpRe(url, data, headers, 4)
-		resp, err := nh.GET()
+		resp, err := nh.GET(client)
 		if err == nil {
 			fn, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND, 0777)
 			if err == nil {
@@ -177,7 +185,6 @@ func (d *DownloadLog) WriteToFile(path string) {
 				_, err = fn.WriteString(string(resp))
 				if err == nil {
 					//解压
-					log.Print("goroutine num222222 = ", runtime.NumGoroutine())
 					d.ungzWork <- filename
 				} else {
 					d.downloadFailed <- url
@@ -214,11 +221,11 @@ func (d *DownloadLog) UnGz() {
 	}
 }
 
-func NewDownloadLog(url string) *DownloadLog {
+func NewDownloadLog() *DownloadLog {
 	return &DownloadLog{
 		uid:            "maiyou",
 		accessKey:      "XcaLL4fMkkSsnIcoyhq6aSFC8QXKkKpo0rYI3TvaGutjF70blSRZrXpzw0PSrGu4",
-		url:            url,
+		url:            "https://openapi.wangjuyunlian.com/api/v1/log/list?",
 		downloadWork:   make(chan string),
 		downloadFailed: make(chan string),
 		ungzWork:       make(chan string),
@@ -229,9 +236,13 @@ func NewDownloadLog(url string) *DownloadLog {
 
 func main() {
 	start := time.Now()
-	url := "https://openapi.wangjuyunlian.com/api/v1/log/list?"
-	nd := NewDownloadLog(url)
-	err := nd.DownloadToLocal("us-cdn-static.burstedgold.com", "2022-12-15", "2022-12-17")
+	nd := NewDownloadLog()
+	err := nd.DownloadToLocal(
+		"us-cdn-static.burstedgold.com",
+		"2022-12-15",
+		"2022-12-17",
+		"C:/Users/Administrator/Desktop/log",
+	)
 	if err != nil {
 		log.Print(err)
 		return

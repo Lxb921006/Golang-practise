@@ -12,7 +12,6 @@ import (
 var (
 	wg    sync.WaitGroup
 	limit = make(chan struct{}, 2)
-	data  = make(chan string)
 )
 
 func main() {
@@ -28,9 +27,8 @@ func main() {
 		"https://github.com/kubernetes/kubernetes",
 	}
 
-	tr := &http.Transport{}
 	client := &http.Client{
-		Transport: tr,
+		Transport: &http.Transport{},
 		Timeout:   time.Duration(5) * time.Second,
 	}
 

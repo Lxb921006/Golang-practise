@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -17,6 +18,20 @@ import (
 
 	"github.com/Lxb921006/Golang-practise/extract"
 	"github.com/Lxb921006/Golang-practise/http/newHttp"
+)
+
+var (
+	client = &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns:          1,
+			MaxIdleConnsPerHost:   1,
+			MaxConnsPerHost:       1,
+			IdleConnTimeout:       90 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ExpectContinueTimeout: 1 * time.Second,
+		},
+		Timeout: time.Duration(3) * time.Second,
+	}
 )
 
 type DownloadLog struct {
@@ -63,7 +78,7 @@ func (d *DownloadLog) RequestApi(params ...string) (resp []byte, err error) {
 
 	url := d.url + v.Encode()
 	nh := newHttp.NewHttpRe(url, data, headers, 4)
-	resp, err = nh.GET()
+	resp, err = nh.GET(client)
 	if err != nil {
 		return
 	}
@@ -129,7 +144,7 @@ func (d *DownloadLog) WriteToFile(v, path string) {
 	var data = make(map[string]interface{})
 	var headers = make(map[string]interface{})
 	nh := newHttp.NewHttpRe(url, data, headers, 4)
-	resp, err := nh.GET()
+	resp, err := nh.GET(client)
 	if err == nil {
 		fn, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND, 0777)
 		if err == nil {
