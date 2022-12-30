@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"flag"
 	"log"
 	"net/http"
 	"net/url"
@@ -25,12 +26,12 @@ var (
 	wg     sync.WaitGroup
 	client = &http.Client{
 		Transport: &http.Transport{
-			MaxIdleConns:          1,
-			MaxIdleConnsPerHost:   1,
-			MaxConnsPerHost:       1,
+			MaxIdleConns:          100,
+			MaxIdleConnsPerHost:   100,
+			MaxConnsPerHost:       100,
 			IdleConnTimeout:       90 * time.Second,
 			TLSHandshakeTimeout:   10 * time.Second,
-			ExpectContinueTimeout: 1 * time.Second,
+			ExpectContinueTimeout: 3 * time.Second,
 		},
 		Timeout: time.Duration(10) * time.Second,
 	}
@@ -217,6 +218,8 @@ func (d *DownloadLog) UnGz() {
 			if err != nil {
 				d.ungzFailed <- file
 			}
+
+			os.Remove(file)
 		}
 	}
 }
@@ -235,13 +238,26 @@ func NewDownloadLog() *DownloadLog {
 }
 
 func main() {
+
+	domain := flag.String("domain", "", "域名")
+	start1 := flag.String("start", "", "起始时间")
+	end := flag.String("end", "", "结束时间")
+	path := flag.String("path", "", "下载保存路径")
+
+	flag.Parse()
+
+	if flag.NFlag() != 2 {
+		log.Print(flag.ErrHelp)
+		return
+	}
+
 	start := time.Now()
 	nd := NewDownloadLog()
 	err := nd.DownloadToLocal(
-		"us-cdn-static.burstedgold.com",
-		"2022-12-15",
-		"2022-12-17",
-		"C:/Users/Administrator/Desktop/log",
+		*domain,
+		*start1,
+		*end,
+		*path,
 	)
 	if err != nil {
 		log.Print(err)

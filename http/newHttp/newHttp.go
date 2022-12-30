@@ -89,11 +89,6 @@ func (nh *HttpRe) FormatParams() (data interface{}, err error) {
 }
 
 func (nh *HttpRe) NewRequest(method string, params io.Reader) (data []byte, err error) {
-	// //超时设置
-	// nh.client = &http.Client{
-	// 	Timeout: time.Duration(nh.Timeout) * time.Second,
-	// }
-
 	switch method {
 	case "POST":
 		nh.hr, err = http.NewRequest("POST", nh.Url, params)
