@@ -38,4 +38,13 @@ func main() {
 		log.Println(name, path)
 	}
 
+	r2, _ := db.Exec("update cmdb.crons_crontabs set status = ? where id = ?", 200, 23)
+	log.Println(r2.RowsAffected())
+
+	r3, err := db.Exec("INSERT INTO `cmdb`.`crons_crontabs`(`operate_user`, `mission`, `status`, `project`) VALUES ('lxb', '/usr/local/php/bin/php -f /opt/test.php', 100, '华闻定时任务');")
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	log.Println(r3.RowsAffected())
 }

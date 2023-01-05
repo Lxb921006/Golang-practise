@@ -21,11 +21,13 @@ type HttpRe struct {
 	resp    *http.Response
 }
 
-func (nh *HttpRe) POST() (data []byte, err error) {
+func (nh *HttpRe) POST(client *http.Client) (data []byte, err error) {
 	fd, err := nh.FormatParams()
 	if err != nil {
 		return
 	}
+
+	nh.client = client
 
 	data, err = nh.NewRequest("POST", fd.(io.Reader))
 	if err != nil {

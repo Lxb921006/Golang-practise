@@ -218,8 +218,6 @@ func (d *DownloadLog) UnGz() {
 			if err != nil {
 				d.ungzFailed <- file
 			}
-
-			os.Remove(file)
 		}
 	}
 }
@@ -246,7 +244,7 @@ func main() {
 
 	flag.Parse()
 
-	if flag.NFlag() != 2 {
+	if flag.NFlag() != 4 {
 		log.Print(flag.ErrHelp)
 		return
 	}

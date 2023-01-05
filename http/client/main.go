@@ -1,25 +1,24 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/url"
-	"strings"
 	"time"
 )
 
 func main() {
 	var data map[string]interface{}
 	var params = make(map[string]interface{})
-	v := url.Values{}
+	// v := url.Values{}
 
-	request_url := "http://127.0.0.1:9293/login"
+	request_url := "http://47.241.38.210:9294/cron/run?user=lxb&token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6Imx4YiIsImV4cCI6MTY3MzE0OTQ5MH0.VqeY_6H08HBsaALy-lrp_GkFXLDSxBfS1zOC5-V6tUk"
 	// request_url := "https://api.xwteam.cn/api/qq/music"
 
-	params["user"] = "lxb"
-	params["password"] = "12332"
+	params["cron_id"] = 1162
+	params["crons"] = "/usr/local/php/bin/php -f /web/wwwroot/shell/thailand_burstedgold_cron/index_cli.php Shell/Gameonlinedata/index"
 
 	b, _ := json.Marshal(&params)
 
@@ -27,19 +26,19 @@ func main() {
 		Timeout: time.Duration(4) * time.Second,
 	}
 
-	// hr, err := http.NewRequest("POST", request_url, bytes.NewReader(b))
+	hr, err := http.NewRequest("POST", request_url, bytes.NewReader(b))
 
-	v.Set("user", "120332269")
-	v.Set("password", "12332")
-	p := v.Encode()
+	// v.Set("cron_id", "1162")
+	// v.Set("password", "12332")
+	// p := v.Encode()
 
-	hr, err := http.NewRequest("POST", request_url, strings.NewReader(p))
+	// hr, err := http.NewRequest("POST", request_url, strings.NewReader(p))
 	if err != nil {
 		log.Print("req error=>", err)
 		return
 	}
 
-	hr.Header.Add("content-type", "application/x-www-form-urlencoded")
+	// hr.Header.Add("content-type", "application/x-www-form-urlencoded")
 
 	resp, err := client.Do(hr)
 	if err != nil {
