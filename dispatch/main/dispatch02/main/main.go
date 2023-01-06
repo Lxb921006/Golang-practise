@@ -108,8 +108,8 @@ func Dispatch05(v interface{}) {
 		return
 	}
 
-	name := v1.Elem().FieldByName("Name").Interface().(string)
-	fmt.Println("name ===>", name)
+	// name := v1.Elem().FieldByName("Name").Interface().(string)
+	// fmt.Println("name ===>", name)
 
 	valNum := t1.Elem().NumField()
 	for i := 0; i < valNum; i++ {
@@ -129,10 +129,10 @@ func Dispatch05(v interface{}) {
 		fmt.Printf("method %d, name=%v, arg num = %d\n", i, t1.Elem().Method(i).Name, t1.Elem().Method(i).Type.NumOut())
 	}
 
-	v2 := v1.Interface().(*Student01)
+	// v2 := v1.Interface().(*Student01)
 
 	v1.Elem().FieldByName("Name").SetString("lqm")
 
-	fmt.Println("v2 = ", v2.Name)
+	// fmt.Println("v2 = ", v2.Name)
 
 }
