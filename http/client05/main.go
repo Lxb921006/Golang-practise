@@ -12,7 +12,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -112,12 +111,12 @@ func (d *DownloadLog) DownloadToLocal(params ...string) (err error) {
 
 	const MaxWorkers = 20
 	wg.Add(20)
-	// downloadPath1 := "C:/Users/Administrator/Desktop/log"
-	downloadPath1 := "/Users/liaoxuanbiao/Downloads/log"
+	downloadPath1 := "C:/Users/Administrator/Desktop/log"
+	// downloadPath1 := "/Users/liaoxuanbiao/Downloads/log"
 
-	// for i := 0; i < MaxWorkers; i++ {
-	// 	go d.UnGz()
-	// }
+	for i := 0; i < MaxWorkers; i++ {
+		go d.UnGz()
+	}
 
 	// 20个下载goroutine
 	for i := 0; i < MaxWorkers; i++ {
@@ -153,26 +152,27 @@ func (d *DownloadLog) DownloadToLocal(params ...string) (err error) {
 }
 
 func (d *DownloadLog) WriteToFile(path string) {
-	// defer func() { d.toStop <- "stop"; log.Print("stoppppppppppp") }() //这里是确保所有文件下载并解压完成后发送信号给toStop停止接受数据
-	defer wg.Done()
+	defer func() { d.toStop <- "stop"; log.Print("send stop 111111111111") }() //这里是确保所有文件下载并解压完成后发送信号给toStop停止接受数据
+	// defer wg.Done()
 	for v := range d.downloadWork {
 		time.Sleep(time.Duration(rand.Intn(10)+1) * time.Second)
 		url := strings.Split(v, "+")[0]
 		date := strings.Split(v, "+")[1]
 		urlGz := strings.Split(url, "?")[0]
 		filename := filepath.Join(filepath.Join(path, date), filepath.Base(urlGz))
-		log.Print("goroutine number = ", runtime.NumGoroutine(), ",  url = ", filename)
+		// log.Print("goroutine number = ", runtime.NumGoroutine(), ",  url = ", filename)
 
 		var data = make(map[string]interface{})
 		var headers = make(map[string]interface{})
 		nh := newHttp.NewHttpRe(url, data, headers, 4)
 		nh.GET(client)
+		d.ungzWork <- filename
 
 	}
 }
 
 func (d *DownloadLog) UnGz() {
-	defer func() { wg.Done(); log.Print("recv stopppppp") }()
+	defer func() { wg.Done(); log.Print("recv stop 222222222222222") }()
 
 	for {
 		select {
@@ -185,7 +185,7 @@ func (d *DownloadLog) UnGz() {
 		case <-d.toStop:
 			return
 		case file := <-d.ungzWork:
-			time.Sleep(time.Duration(rand.Intn(5)+1) * time.Second)
+			time.Sleep(time.Duration(rand.Intn(3)+1) * time.Second)
 			log.Print("recv == ", file)
 			// unGz := extract.NewUngz(file)
 			// err := unGz.UngzFile()
@@ -215,7 +215,7 @@ func main() {
 	start := time.Now()
 	url := "https://openapi.wangjuyunlian.com/api/v1/log/list?"
 	nd := NewDownloadLog(url)
-	err := nd.DownloadToLocal("us-cdn-static.burstedgold.com", "2022-12-15", "2022-12-15")
+	err := nd.DownloadToLocal("us-cdn-static.burstedgold.com", "2023-01-07", "2023-01-09")
 	if err != nil {
 		log.Print(err)
 		return

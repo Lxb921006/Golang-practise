@@ -79,7 +79,6 @@ func main() {
 }
 
 func request(client *http.Client) {
-
 	defer func() {
 		wg.Done()
 	}()
