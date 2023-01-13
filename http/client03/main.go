@@ -161,7 +161,8 @@ func (d *DownloadLog) DownloadToLocal(params ...string) (err error) {
 			}
 		}
 	}
-	//到这里可以确保不再往管道发送数据，可以关闭，遵循关闭管道原则
+
+	//到这里可以确保不再往管道发送数据，可以关闭管道，遵循关闭管道原则
 	close(d.downloadWork)
 	return
 }

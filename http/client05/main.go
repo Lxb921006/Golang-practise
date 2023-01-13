@@ -146,6 +146,7 @@ func (d *DownloadLog) DownloadToLocal(params ...string) (err error) {
 			}
 		}
 	}
+
 	//到这里可以确保不再往管道发送数据，可以关闭，遵循关闭管道原则
 	close(d.downloadWork)
 	return
@@ -215,7 +216,7 @@ func main() {
 	start := time.Now()
 	url := "https://openapi.wangjuyunlian.com/api/v1/log/list?"
 	nd := NewDownloadLog(url)
-	err := nd.DownloadToLocal("us-cdn-static.burstedgold.com", "2023-01-07", "2023-01-09")
+	err := nd.DownloadToLocal("us-cdn-static.burstedgold.com", "2023-01-07", "2023-01-08")
 	if err != nil {
 		log.Print(err)
 		return

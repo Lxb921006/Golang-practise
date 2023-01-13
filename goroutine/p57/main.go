@@ -50,16 +50,17 @@ func main() {
 	// senders
 	for i := 0; i < NumSenders; i++ {
 		go func(id string) {
+			defer func() { log.Print("send stop1111111111111111") }()
 			for {
 				log.Print("gn11111111 = ", runtime.NumGoroutine())
 				time.Sleep(time.Duration(rand.Intn(10) * int(time.Second)))
 				value := rand.Intn(Max)
-				if value == 0 {
+				if value >= 97000 {
 					// Here, the try-send operation is
 					// to notify the moderator to close
 					// the additional signal channel.
 					select {
-					case toStop <- "sender#" + id:
+					case toStop <- "sender#" + id: // 30个发送goroutine，但只有最先进入到这里的goroutine才能close(stopCh)，其他的goroutine进到这里都会阻塞直到被gc回收, 所以只会打印一次send stop1111111111111111，这个就是设置管道容量为1的好处
 					default:
 					}
 					return
@@ -99,7 +100,7 @@ func main() {
 	// receivers
 	for i := 0; i < NumReceivers; i++ {
 		go func(id string) {
-			defer wgReceivers.Done()
+			defer func() { wgReceivers.Done(); log.Print("recv stop1111111111111111111") }()
 
 			for {
 				// Same as the sender goroutine, the

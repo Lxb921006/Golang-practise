@@ -30,23 +30,6 @@ func main() {
 		"https://github.com/k8sre/k8s",
 		"https://github.com/k3s-io/k3s",
 		"https://github.com/Thakurvaibhav/k8s",
-		"https://github.com/Thakurvaibhav/k8s",
-		"https://github.com/Thakurvaibhav/k8s",
-		"https://github.com/Thakurvaibhav/k8s",
-		"https://github.com/Thakurvaibhav/k8s",
-		"https://github.com/Thakurvaibhav/k8s",
-		"https://github.com/Thakurvaibhav/k8s",
-		"https://github.com/Thakurvaibhav/k8s",
-		"https://github.com/Thakurvaibhav/k8s",
-		"https://github.com/Thakurvaibhav/k8s",
-		"https://github.com/Thakurvaibhav/k8s",
-		"https://github.com/Thakurvaibhav/k8s",
-		"https://github.com/Thakurvaibhav/k8s",
-		"https://github.com/Thakurvaibhav/k8s",
-		"https://github.com/Thakurvaibhav/k8s",
-		"https://github.com/Thakurvaibhav/k8s",
-		"https://github.com/Thakurvaibhav/k8s",
-		"https://github.com/Thakurvaibhav/k8s",
 	}
 
 	client := &http.Client{
@@ -79,9 +62,7 @@ func main() {
 }
 
 func request(client *http.Client) {
-	defer func() {
-		wg.Done()
-	}()
+	defer wg.Done()
 
 	for url := range work {
 
@@ -90,7 +71,6 @@ func request(client *http.Client) {
 		if err != nil {
 			log.Println("We could not reach:", url, err)
 		} else {
-			// response.Body.Close()
 			log.Println("Success reaching the website:", url)
 		}
 
