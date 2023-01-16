@@ -162,13 +162,13 @@ func (d *DownloadLog) DownloadToLocal(params ...string) (err error) {
 		}
 	}
 
-	//到这里可以确保不再往管道发送数据，可以关闭管道，遵循关闭管道原则
+	//这里可以确保不再往管道发送数据，可以关闭管道，遵循关闭管道原则
 	close(d.downloadWork)
 	return
 }
 
 func (d *DownloadLog) WriteToFile(path string) {
-	defer func() { d.toStop <- "stop" }() //这里是确保所有文件下载并解压完成后发送信号给toStop停止接受数据
+	defer func() { d.toStop <- "stop" }() //这里是确保所有文件下载完并解压完成后发送信号给toStop停止接受数据
 
 	for v := range d.downloadWork {
 		url := strings.Split(v, "+")[0]
