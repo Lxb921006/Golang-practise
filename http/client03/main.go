@@ -238,10 +238,10 @@ func NewDownloadLog() *DownloadLog {
 
 func main() {
 
-	domain := flag.String("domain", "", "域名")
-	start1 := flag.String("start", "", "起始时间")
-	end := flag.String("end", "", "结束时间")
-	path := flag.String("path", "", "下载保存路径")
+	domain := flag.String("d", "", "域名")
+	start1 := flag.String("s", "", "起始时间")
+	end := flag.String("e", "", "结束时间")
+	path := flag.String("p", "", "下载保存路径")
 
 	flag.Parse()
 
