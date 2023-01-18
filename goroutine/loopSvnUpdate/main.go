@@ -17,7 +17,7 @@ type Config struct {
 
 // 内网循环svn update
 func main() {
-	var loop chan struct{}
+	var block chan struct{}
 	var config Config
 	work := make(chan string)
 
@@ -25,19 +25,19 @@ func main() {
 
 	of, err := os.Open(file)
 	if err != nil {
-		log.Print("projects.json not exists", err)
+		log.Print("projects.json not exists, esg = ", err)
 		return
 	}
 
-	data, err := io.ReadAll(of)
+	b, err := io.ReadAll(of)
 	if err != nil {
-		log.Print("read projects.json file", err)
+		log.Print("read projects.json file, esg = ", err)
 		return
 	}
 
-	err = json.Unmarshal(data, &config)
+	err = json.Unmarshal(b, &config)
 	if err != nil {
-		log.Print("failed to parse a.json", err)
+		log.Print("failed to parse projects.json, esg = ", err)
 		return
 	}
 
@@ -60,12 +60,12 @@ func main() {
 		}()
 	}
 
-	<-loop
+	<-block
 
 }
 
 func cmd(p string) (err error) {
-	out, err := exec.Command("sh", "/root/shellscript/svn_update2.sh", p, "&>", "/dev/null").Output()
+	out, err := exec.Command("sh", "/root/shellscript/svn_update2.sh", p).Output()
 	if err != nil {
 		return errors.New(string(out))
 	}

@@ -6,11 +6,12 @@ import (
 )
 
 func main() {
-	data, err := exec.Command("sh", "/web/wwwroot/shell/opt/cron_script/new_run_cron.sh", "101", "/usr/local/php/bin/php /web/wwwroot/shell/truco_cron/index_cli.php Shell/Gameonlinedata/index").Output()
+	p := "/web/wwwroot/mlxy.burstedgold.com"
+	data, err := exec.Command("sh", "/root/shellscript/svn_update2.sh", p).Output()
 	if err != nil {
-		log.Print(err, string(data))
+		log.Print("qwert11111 = ", err, string(data))
 		return
 	}
 
-	log.Print(string(data))
+	log.Print("1111111 = ", string(data))
 }
