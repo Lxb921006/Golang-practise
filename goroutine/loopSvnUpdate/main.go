@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"log"
+	"math/rand"
 	"os"
 	"os/exec"
 	"time"
@@ -17,6 +18,9 @@ type Config struct {
 
 // 内网循环svn update
 func main() {
+
+	rand.Seed(time.Now().Unix())
+
 	var block chan struct{}
 	var config Config
 	work := make(chan string)
@@ -46,7 +50,7 @@ func main() {
 			for _, v := range config.Project {
 				work <- v
 			}
-			time.Sleep(time.Duration(2) * time.Second)
+			time.Sleep(time.Duration(rand.Intn(8)+1) * time.Second)
 		}
 	}()
 
