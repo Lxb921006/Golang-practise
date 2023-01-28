@@ -25,9 +25,7 @@ func main() {
 	var config Config
 	work := make(chan string)
 
-	file := "./projects.json"
-
-	of, err := os.Open(file)
+	of, err := os.Open("./projects.json")
 	if err != nil {
 		log.Print("projects.json not exists, esg = ", err)
 		return
@@ -39,8 +37,7 @@ func main() {
 		return
 	}
 
-	err = json.Unmarshal(b, &config)
-	if err != nil {
+	if err = json.Unmarshal(b, &config); err != nil {
 		log.Print("failed to parse projects.json, esg = ", err)
 		return
 	}
@@ -65,7 +62,6 @@ func main() {
 	}
 
 	<-block
-
 }
 
 func cmd(p string) (err error) {
