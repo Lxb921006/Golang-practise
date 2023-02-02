@@ -9,6 +9,7 @@ import (
 
 var (
 	stop = make(chan int, 1)
+	do2  = make(chan int)
 )
 
 func main() {
@@ -21,12 +22,18 @@ func main() {
 
 	work := func(ctx context.Context) {
 		for v := range do {
-			run(v, ctx)
+			// run(v, ctx)
+			do2 <- v
 		}
+	}
+	for range [3]struct{}{} {
+
+		go run(1, ctx)
 	}
 
 	for range [3]struct{}{} {
 		go work(ctx)
+
 	}
 
 	go func() {
@@ -52,12 +59,23 @@ func main() {
 
 func run(v int, ctx context.Context) {
 	for {
+
+		select {
+		case <-stop:
+			return
+		default:
+		}
+
 		select {
 		case <-stop:
 			log.Print(v)
 			return
+		case v = <-do2:
+			log.Print(v)
+			for {
+				time.Sleep(time.Second)
+			}
 		default:
 		}
 	}
-	log.Print(111)
 }

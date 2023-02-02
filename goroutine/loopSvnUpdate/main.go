@@ -19,7 +19,6 @@ type Config struct {
 
 var (
 	stop = make(chan int, 1)
-	do   = make(chan string)
 )
 
 // svn update
@@ -84,18 +83,18 @@ func main() {
 }
 
 func cmd(p string, ctx context.Context) (err error) {
-	select {
-	case <-stop:
-		return errors.New("run cmd timeout")
-	case <-do:
-		//do something
-		out, err := exec.Command("sh", "/root/shellscript/test.sh", p).Output()
-		if err != nil {
-			return errors.New(string(out))
+	for {
+		select {
+		case <-stop:
+			return errors.New("run cmd timeout")
+		default:
+			//do something
+			out, err := exec.Command("sh", "/root/shellscript/test.sh", p).Output()
+			if err != nil {
+				return errors.New(string(out))
+			}
 		}
 	}
-
-	return
 }
 
 func public(file string) (b []byte, err error) {
