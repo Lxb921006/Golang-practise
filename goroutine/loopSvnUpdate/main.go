@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -16,29 +17,24 @@ type Config struct {
 	Limit   int      `json:"limit"`
 }
 
-// 内网循环svn update
+var (
+	stop = make(chan int, 1)
+	do   = make(chan string)
+)
+
+// svn update
 func main() {
 
 	rand.Seed(time.Now().Unix())
-
 	var block chan struct{}
-	var config Config
 	work := make(chan string)
 
-	of, err := os.Open("./projects.json")
-	if err != nil {
-		log.Print("projects.json not exists, esg = ", err)
-		return
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
 
-	b, err := io.ReadAll(of)
+	config, err := getFileData("./projects.json")
 	if err != nil {
-		log.Print("read projects.json file, esg = ", err)
-		return
-	}
-
-	if err = json.Unmarshal(b, &config); err != nil {
-		log.Print("failed to parse projects.json, esg = ", err)
+		log.Print(err)
 		return
 	}
 
@@ -47,27 +43,85 @@ func main() {
 			for _, v := range config.Project {
 				work <- v
 			}
-			time.Sleep(time.Duration(rand.Intn(8)+1) * time.Second)
+
+			time.Sleep(time.Duration(rand.Intn(10)+1) * time.Second)
+
 		}
 	}()
 
 	for i := 0; i < config.Limit; i++ {
-		go func() {
+		go func(ctx context.Context) {
 			for v := range work {
-				if err := cmd(v); err != nil {
+				if err := cmd(v, ctx); err != nil {
 					log.Printf("%s update failed, esg = %v", v, err)
 				}
 			}
-		}()
+		}(ctx)
+
+		go func(ctx context.Context) {
+			select {
+			case <-ctx.Done():
+
+				log.Printf("Context cancelled: %v\n", ctx.Err())
+			default:
+			}
+		}(ctx)
+
 	}
+
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				stop <- 1
+			case <-time.After(2 * time.Second):
+				stop <- 1
+			}
+		}
+	}()
 
 	<-block
 }
 
-func cmd(p string) (err error) {
-	out, err := exec.Command("sh", "/root/shellscript/svn_update2.sh", p).Output()
-	if err != nil {
-		return errors.New(string(out))
+func cmd(p string, ctx context.Context) (err error) {
+	select {
+	case <-stop:
+		return errors.New("run cmd timeout")
+	case <-do:
+		//do something
+		out, err := exec.Command("sh", "/root/shellscript/test.sh", p).Output()
+		if err != nil {
+			return errors.New(string(out))
+		}
 	}
+
+	return
+}
+
+func public(file string) (b []byte, err error) {
+	of, err := os.Open(file)
+	if err != nil {
+		return
+	}
+
+	b, err = io.ReadAll(of)
+	if err != nil {
+		return
+	}
+
+	return
+
+}
+
+func getFileData(file string) (c Config, err error) {
+	b, err := public(file)
+	if err != nil {
+		return
+	}
+
+	if err = json.Unmarshal(b, &c); err != nil {
+		return
+	}
+
 	return
 }

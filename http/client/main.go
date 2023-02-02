@@ -14,8 +14,8 @@ func main() {
 	var params = make(map[string]interface{})
 	// v := url.Values{}
 
-	request_url := "http://47.241.38.210:9294/cron/run?user=lxb&token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6Imx4YiIsImV4cCI6MTY3MzE0OTQ5MH0.VqeY_6H08HBsaALy-lrp_GkFXLDSxBfS1zOC5-V6tUk"
-	// request_url := "https://api.xwteam.cn/api/qq/music"
+	// request_url := "http://47.241.38.210:9294/cron/run?user=lxb&token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6Imx4YiIsImV4cCI6MTY3MzE0OTQ5MH0.VqeY_6H08HBsaALy-lrp_GkFXLDSxBfS1zOC5-V6tUk"
+	request_url := "http://127.0.0.1:8082/work"
 
 	params["cron_id"] = 1162
 	params["crons"] = "/usr/local/php/bin/php -f /web/wwwroot/shell/thailand_burstedgold_cron/index_cli.php Shell/Gameonlinedata/index"

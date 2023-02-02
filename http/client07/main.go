@@ -38,7 +38,7 @@ func main() {
 			TLSHandshakeTimeout:   10 * time.Second,
 			ExpectContinueTimeout: 1 * time.Second,
 		},
-		Timeout: time.Duration(3) * time.Second,
+		Timeout: time.Duration(5) * time.Second,
 	}
 
 	const MaxWorkers = 4

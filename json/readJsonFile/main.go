@@ -9,11 +9,12 @@ import (
 
 type Config struct {
 	Project []string `json:"project"`
+	Limit   int      `json:"limit"`
 }
 
 func main() {
 	var config Config
-	file := "./projects.json"
+	file := "C:/Users/Administrator/Desktop/projects.json"
 	of, err := os.Open(file)
 	if err != nil {
 		log.Print(err)

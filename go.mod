@@ -10,6 +10,7 @@ require (
 )
 
 require (
+	github.com/Jeffail/tunny v0.1.4 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect

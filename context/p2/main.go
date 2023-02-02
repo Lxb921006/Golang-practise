@@ -17,7 +17,7 @@ LOOP:
 		time.Sleep(time.Second)
 		select {
 		case <-ctx.Done(): // 等待上级通知
-			fmt.Println("worker222")
+			fmt.Println("截止时间已到")
 			break LOOP
 		default:
 		}
@@ -28,7 +28,10 @@ LOOP:
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	wg.Add(1)
-	go worker(ctx)
+	for range [3]struct{}{} {
+		go worker(ctx)
+	}
+
 	time.Sleep(time.Second * 3)
 	cancel() // 通知子goroutine结束
 	wg.Wait()
