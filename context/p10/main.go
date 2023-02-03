@@ -9,7 +9,6 @@ import (
 func main() {
 	forever := make(chan struct{})
 	ctx, cancel := context.WithCancel(context.Background())
-
 	go func(ctx context.Context) {
 		for {
 			select {
@@ -18,6 +17,7 @@ func main() {
 				return
 			default:
 				fmt.Println("for loop")
+				time.Sleep(time.Second * 30)
 			}
 
 			time.Sleep(500 * time.Millisecond)

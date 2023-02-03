@@ -8,8 +8,7 @@ import (
 )
 
 var (
-	stop = make(chan int, 1)
-	do2  = make(chan int)
+	res = make(chan int)
 )
 
 func main() {
@@ -17,37 +16,17 @@ func main() {
 
 	rand.Seed(time.Now().Unix())
 	s := []int{100, 200, 300, 400, 500, 600}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
-	defer cancel()
+	ctx := context.Background()
 
-	work := func(ctx context.Context) {
+	work := func() {
 		for v := range do {
-			// run(v, ctx)
-			do2 <- v
+			run(v, ctx)
 		}
-	}
-	for range [3]struct{}{} {
-
-		go run(1, ctx)
 	}
 
 	for range [3]struct{}{} {
-		go work(ctx)
-
+		go work()
 	}
-
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				stop <- 1
-				log.Print("timeout222")
-			case <-time.After(2 * time.Second):
-				stop <- 1
-				log.Print("timeout111")
-			}
-		}
-	}()
 
 	for _, v := range s {
 		do <- v
@@ -58,24 +37,27 @@ func main() {
 }
 
 func run(v int, ctx context.Context) {
-	for {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
+	defer cancel()
 
-		select {
-		case <-stop:
-			return
-		default:
-		}
+	//这里会有内存泄露问题
+	// go func(ctx context.Context) {
+	// 	for {
+	// 		time.Sleep(time.Second)
+	// 	}
+	// 	res <- v
+	// }(ctx)
 
-		select {
-		case <-stop:
-			log.Print(v)
-			return
-		case v = <-do2:
-			log.Print(v)
-			for {
-				time.Sleep(time.Second)
-			}
-		default:
-		}
+	select {
+	case <-ctx.Done():
+		log.Print(v)
+		log.Print("TIME OUT111")
+		return
+	case <-time.After(time.Second * 4):
+		log.Print("TIME OUT222")
+		return
+	case v2 := <-res:
+		log.Print(v2)
 	}
+
 }
