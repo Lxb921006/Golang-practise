@@ -32,12 +32,12 @@ func main() {
 		do <- v
 	}
 
-	time.Sleep(time.Second * 20)
+	time.Sleep(time.Second * 10)
 
 }
 
 func run(v int, ctx context.Context) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
 
 	//这里会有内存泄露问题
@@ -53,7 +53,7 @@ func run(v int, ctx context.Context) {
 		log.Print(v)
 		log.Print("TIME OUT111")
 		return
-	case <-time.After(time.Second * 4):
+	case <-time.After(time.Second * 2):
 		log.Print("TIME OUT222")
 		return
 	case v2 := <-res:
