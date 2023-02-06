@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"io"
 	"log"
 	"math/rand"
@@ -12,92 +11,14 @@ import (
 	"time"
 )
 
+// svn update
 type Config struct {
 	Project []string `json:"project"`
 	Limit   int      `json:"limit"`
+	TimeOut int      `json:"timeout"`
 }
 
-var (
-	stop = make(chan int, 1)
-)
-
-// svn update
-func main() {
-
-	rand.Seed(time.Now().Unix())
-	var block chan struct{}
-	work := make(chan string)
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-
-	config, err := getFileData("./projects.json")
-	if err != nil {
-		log.Print(err)
-		return
-	}
-
-	go func() {
-		for {
-			for _, v := range config.Project {
-				work <- v
-			}
-
-			time.Sleep(time.Duration(rand.Intn(10)+1) * time.Second)
-
-		}
-	}()
-
-	for i := 0; i < config.Limit; i++ {
-		go func(ctx context.Context) {
-			for v := range work {
-				if err := cmd(v, ctx); err != nil {
-					log.Printf("%s update failed, esg = %v", v, err)
-				}
-			}
-		}(ctx)
-
-		go func(ctx context.Context) {
-			select {
-			case <-ctx.Done():
-
-				log.Printf("Context cancelled: %v\n", ctx.Err())
-			default:
-			}
-		}(ctx)
-
-	}
-
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				stop <- 1
-			case <-time.After(2 * time.Second):
-				stop <- 1
-			}
-		}
-	}()
-
-	<-block
-}
-
-func cmd(p string, ctx context.Context) (err error) {
-	for {
-		select {
-		case <-stop:
-			return errors.New("run cmd timeout")
-		default:
-			//do something
-			out, err := exec.Command("sh", "/root/shellscript/test.sh", p).Output()
-			if err != nil {
-				return errors.New(string(out))
-			}
-		}
-	}
-}
-
-func public(file string) (b []byte, err error) {
+func (c *Config) PareJson(file string) (b []byte, err error) {
 	of, err := os.Open(file)
 	if err != nil {
 		return
@@ -109,18 +30,71 @@ func public(file string) (b []byte, err error) {
 	}
 
 	return
-
 }
 
-func getFileData(file string) (c Config, err error) {
-	b, err := public(file)
+func (c *Config) GetFileData(file string) (cc Config, err error) {
+	b, err := c.PareJson(file)
 	if err != nil {
 		return
 	}
 
-	if err = json.Unmarshal(b, &c); err != nil {
+	if err = json.Unmarshal(b, &cc); err != nil {
 		return
 	}
 
 	return
+}
+
+func main() {
+
+	rand.Seed(time.Now().UnixNano())
+
+	var block chan struct{}
+	var config Config
+	work := make(chan string)
+
+	ctx := context.Background()
+
+	config, err := config.GetFileData("./projects.json")
+	if err != nil {
+		log.Print(err)
+		return
+	}
+
+	go func() {
+		for {
+			for _, v := range config.Project {
+				work <- v
+			}
+			time.Sleep(time.Second * time.Duration(rand.Intn(5)+1))
+		}
+	}()
+
+	for i := 0; i < config.Limit; i++ {
+		go func(ctx context.Context) {
+			for v := range work {
+				if err := cmd(v, ctx, config); err != nil {
+					log.Printf("%s update failed, esg = %v", v, err)
+				}
+			}
+		}(ctx)
+	}
+
+	<-block
+}
+
+func cmd(p string, ctx context.Context, config Config) (err error) {
+	if config.TimeOut > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, time.Second*time.Duration(config.TimeOut))
+		defer cancel()
+	}
+
+	cmd := exec.CommandContext(ctx, "sh", "/root/shellscript/svn_update2.sh", p)
+	if err = cmd.Run(); err != nil {
+		return
+	}
+
+	return
+
 }
