@@ -36,7 +36,7 @@ func main() {
 
 func run() int {
 
-	time.Sleep(time.Second * 2)
+	time.Sleep(time.Second * 6)
 	fmt.Println(10)
 	return 10
 }
