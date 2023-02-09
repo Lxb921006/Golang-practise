@@ -25,11 +25,11 @@ func main() {
 
 	// Calling AfterFunc() method with its
 	// parameter
-	Timer1 := time.AfterFunc(DurationOfTime, f)
+	time.AfterFunc(DurationOfTime, f)
 
 	// Calling stop method
 	// w.r.to Timer1
-	defer Timer1.Stop()
+	// defer Timer1.Stop()
 
 	run()
 

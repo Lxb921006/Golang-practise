@@ -18,6 +18,7 @@ func main() {
 
 		// Printed after stated duration
 		// by AfterFunc() method is over
+		//fxxooxxoof@proton.me
 		fmt.Println("6 seconds over....")
 
 		// loop stops at this point
