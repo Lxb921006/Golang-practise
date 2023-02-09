@@ -18,7 +18,7 @@ type Config struct {
 	TimeOut int      `json:"timeout"`
 }
 
-func (c *Config) PareJson(file string) (b []byte, err error) {
+func (c Config) PareJson(file string) (b []byte, err error) {
 	of, err := os.Open(file)
 	if err != nil {
 		return
@@ -32,7 +32,7 @@ func (c *Config) PareJson(file string) (b []byte, err error) {
 	return
 }
 
-func (c *Config) GetFileData(file string) (cc Config, err error) {
+func (c Config) GetFileData(file string) (cc Config, err error) {
 	b, err := c.PareJson(file)
 	if err != nil {
 		return

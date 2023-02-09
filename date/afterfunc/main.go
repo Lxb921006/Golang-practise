@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -37,6 +38,10 @@ func main() {
 func run() int {
 
 	time.Sleep(time.Second * 6)
+	a := "a.sql"
+	if strings.HasSuffix(a, ".sql") {
+		fmt.Println("true")
+	}
 	fmt.Println(10)
 	return 10
 }
