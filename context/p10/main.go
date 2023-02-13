@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -14,10 +15,11 @@ func main() {
 			select {
 			case <-ctx.Done(): // if cancel() execute
 				forever <- struct{}{}
+				log.Print(ctx.Err().Error())
 				return
 			default:
 				fmt.Println("for loop")
-				time.Sleep(time.Second * 30)
+				time.Sleep(time.Second * 1)
 			}
 
 			time.Sleep(500 * time.Millisecond)

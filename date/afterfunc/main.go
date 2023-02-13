@@ -38,10 +38,10 @@ func main() {
 func run() int {
 
 	time.Sleep(time.Second * 6)
-	a := "a.sql"
-	if strings.HasSuffix(a, ".sql") {
-		fmt.Println("true")
-	}
-	fmt.Println(10)
+
+	s := []string{"lxb", "lqm"}
+	s1 := strings.Join(s, "")
+
+	fmt.Println(10, s1)
 	return 10
 }

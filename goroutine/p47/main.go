@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// 使用带缓冲的channel来限制goroutine数量，（会重复创建goroutine，但问题不大，Golang的协程创建消耗不大）
 type Customer struct{ id int }
 type Bar chan Customer
 
