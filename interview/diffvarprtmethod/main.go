@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+// 方法值接收者和指针接收者区别
+
 type Person struct {
 	Age int
 }

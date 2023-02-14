@@ -237,11 +237,11 @@ func NewDownloadLog() *DownloadLog {
 }
 
 func main() {
-
-	domain := flag.String("d", "", "域名")
-	start1 := flag.String("s", "", "起始时间")
-	end := flag.String("e", "", "结束时间")
-	path := flag.String("p", "", "下载保存路径")
+	savePath, _ := os.Getwd()
+	domain := flag.String("domain", "hotupdate-static.burstedgold.com", "域名")
+	start1 := flag.String("start", time.Now().Format("2006-01-02"), "起始时间")
+	end := flag.String("end", time.Now().Format("2006-01-02"), "结束时间")
+	path := flag.String("savePath", savePath, "日志存放路径")
 
 	flag.Parse()
 
