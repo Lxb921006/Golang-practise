@@ -31,9 +31,6 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	log.Print("addr = ", *addr)
-	log.Print("name = ", *name)
-
 	r, err := c.SayHelloWorld(ctx, &pb.HelloRequest{Name: *name})
 	if err != nil {
 		log.Fatalf("could not send: %v", err)

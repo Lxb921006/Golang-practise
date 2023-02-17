@@ -45,6 +45,8 @@ func main() {
 		return
 	}
 
+	defer db.Close()
+
 	db.SetMaxIdleConns(10)
 	db.SetMaxOpenConns(100)
 	db.SetConnMaxLifetime(time.Hour)

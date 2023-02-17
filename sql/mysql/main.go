@@ -19,6 +19,8 @@ func main() {
 		return
 	}
 
+	defer db.Close()
+
 	if err := db.Ping(); err != nil {
 		log.Println("err = ", err)
 		return
