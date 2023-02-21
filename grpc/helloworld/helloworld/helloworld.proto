@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "./";
+option go_package = "github.com/Lxb921006/Golang-practise/grpc;helloworld";
 
 package helloworld;
 
