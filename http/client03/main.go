@@ -245,8 +245,8 @@ func main() {
 
 	flag.Parse()
 
-	if flag.NFlag() != 4 {
-		log.Print(flag.ErrHelp)
+	if len(os.Args) != 4 {
+		log.Print(flag.ErrHelp.Error())
 		return
 	}
 
