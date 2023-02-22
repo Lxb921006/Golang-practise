@@ -35,6 +35,11 @@ var (
 		},
 		Timeout: time.Duration(10) * time.Second,
 	}
+
+	domain = flag.String("domain", "hotupdate-static.burstedgold.com", "域名")
+	start1 = flag.String("start", time.Now().Format("2006-01-02"), "起始时间")
+	end    = flag.String("end", time.Now().Format("2006-01-02"), "结束时间")
+	path   = flag.String("path", "", "日志存放路径")
 )
 
 type DownloadLog struct {
@@ -237,15 +242,11 @@ func NewDownloadLog() *DownloadLog {
 }
 
 func main() {
-	savePath, _ := os.Getwd()
-	domain := flag.String("domain", "hotupdate-static.burstedgold.com", "域名")
-	start1 := flag.String("start", time.Now().Format("2006-01-02"), "起始时间")
-	end := flag.String("end", time.Now().Format("2006-01-02"), "结束时间")
-	path := flag.String("savePath", savePath, "日志存放路径")
 
 	flag.Parse()
 
-	if len(os.Args) != 4 {
+	if flag.NFlag() != 4 {
+		log.Print("a = ", os.Args)
 		log.Print(flag.ErrHelp.Error())
 		return
 	}
