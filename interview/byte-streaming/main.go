@@ -16,6 +16,7 @@ func main() {
 	for len(b) >= 5 {
 		chunk, b = b[:5], b[5:]
 		chunks = append(chunks, chunk)
+		fmt.Println("len = ", len(b))
 	}
 
 	fmt.Println(chunks)

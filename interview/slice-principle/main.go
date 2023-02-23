@@ -9,4 +9,11 @@ func main() {
 	s = append(s, s2...)
 	fmt.Println(s, len(s), cap(s))
 
+	s3 := []int{22, 33, 44, 55, 66, 77, 88, 99, 11}
+	s4 := s3[5:]
+	s5 := s3[:5]
+
+	fmt.Println(s4)
+	fmt.Println(s5)
+
 }
