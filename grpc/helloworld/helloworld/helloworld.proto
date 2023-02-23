@@ -9,7 +9,7 @@ service TestGrpcHelloWorld {
 }
 
 
-// The request message containing the user's name.
+// The request message containing the user's name. 1代表的是id在一个message 里边是唯一的, 不能重复
 message HelloRequest {
 	string name = 1;
 }
