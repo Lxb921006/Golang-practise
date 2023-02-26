@@ -8,20 +8,20 @@ import (
 )
 
 type S3Object struct {
-	S3Sess
+	S3Sess *S3Sess
 	Bucket string
 }
 
 func (p *S3Object) PutObject(src, dst string) (err error) {
-	s3api, err := p.s3sess()
+	s3api, err := p.S3Sess.s3sess()
 	if err != nil {
 		return
 	}
 
 	input := &s3.PutObjectInput{
-		Body:   aws.ReadSeekCloser(strings.NewReader("C:/Users/Administrator/Desktop/TaskcplconfigController.class.php")),
-		Bucket: aws.String("db-backup-huawen"),
-		Key:    aws.String("truco/TaskcplconfigController.class.php"),
+		Body:   aws.ReadSeekCloser(strings.NewReader(src)),
+		Bucket: aws.String(p.Bucket),
+		Key:    aws.String(dst),
 	}
 
 	_, err = s3api.PutObject(input)
