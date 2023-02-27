@@ -14,7 +14,7 @@ var (
 type Seat int
 type Bar chan Seat
 
-//最多同时10个客户，但还有大量客户需要goroutine
+// 最多同时10个客户，但还有大量客户需要goroutine
 func (bar Bar) ServeCustomerAtSeat(c int, seat Seat) {
 	log.Print("gn111 = ", runtime.NumGoroutine())
 	log.Print("++ customer#", c, " drinks at seat#", seat)
@@ -35,7 +35,6 @@ func main() {
 
 	for customerId := 0; ; customerId++ {
 		log.Print("gn2222 = ", runtime.NumGoroutine())
-		log.Print("workers = ", len(bar24x7))
 		// time.Sleep(time.Second)
 		// Need a seat to serve next customer.
 		seat := <-bar24x7
