@@ -1,28 +1,46 @@
 package main
 
-import "fmt"
+import (
+	"log"
+	"math/rand"
+	"time"
+)
 
-// select有一个default分支和只有一个分支 的块case称为 try-send 或 try-receive 通道操作
-// 标准的 Go 编译器对 try-send 和 try-receive select blocks 进行了特殊优化，其执行效率远高于 multi-case select blocks
+type Seat int
+type Bar chan Seat
+
+func (bar Bar) ServeCustomerAtSeat(c int, seat Seat) {
+	log.Print("++ customer#", c, " drinks at seat#", seat)
+	time.Sleep(time.Second * time.Duration(2+rand.Intn(6)))
+	log.Print("-- customer#", c, " frees seat#", seat)
+	bar <- seat // free seat and leave the bar
+}
+
 func main() {
-	type Book struct{ id int }
-	bookshelf := make(chan Book, 3)
+	rand.Seed(time.Now().UnixNano()) // needed before Go 1.20
 
-	for i := 0; i < cap(bookshelf)*2; i++ {
-		select {
-		case bookshelf <- Book{id: i}:
-			fmt.Println("succeeded to put book", i)
-		default:
-			fmt.Println("failed to put book")
+	bar24x7 := make(Bar, 10)
+	for seatId := 0; seatId < cap(bar24x7); seatId++ {
+		bar24x7 <- Seat(seatId)
+	}
+	go func() {
+		for {
+			log.Print(">>>", len(bar24x7))
+			if len(bar24x7) == 0 {
+				log.Print("null")
+				return
+			}
 		}
+	}()
+
+	for customerId := 0; customerId < 30; customerId++ {
+		time.Sleep(time.Second)
+		// Need a seat to serve next customer.
+		seat := <-bar24x7
+		go bar24x7.ServeCustomerAtSeat(customerId, seat)
 	}
 
-	for i := 0; i < cap(bookshelf)*2; i++ {
-		select {
-		case book := <-bookshelf:
-			fmt.Println("succeeded to get book", book.id)
-		default:
-			fmt.Println("failed to get book")
-		}
+	for {
+		time.Sleep(time.Second)
 	}
 }
