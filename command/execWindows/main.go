@@ -26,14 +26,15 @@ func main() {
 	s3api := s3.New(sess)
 
 	input := &s3.PutObjectInput{
-		Body:   aws.ReadSeekCloser(strings.NewReader("C:/Users/Administrator/Desktop/TaskcplconfigController.class.php")),
+		Body:   aws.ReadSeekCloser(strings.NewReader("C:/Users/Administrator/Desktop/baxi_MGCenter_FULL_20230211_000001.bak")),
 		Bucket: aws.String("db-backup-huawen"),
-		Key:    aws.String("truco/TaskcplconfigController.class.php"),
+		Key:    aws.String("truco/baxi_MGCenter_FULL_20230211_000001.bak"),
 	}
 
 	res, err := s3api.PutObject(input)
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
 
 	fmt.Println(res)

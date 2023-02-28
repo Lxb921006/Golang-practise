@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -9,39 +8,29 @@ import (
 )
 
 var (
-	limit = make(chan struct{}, 10)
+	total = 0
+
+	root = "C:/Users/Administrator/Desktop/update"
 )
 
 func main() {
-	dir := "/Applications/"
-	count := 0
-	do := func(root string) {
-		filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-			if !info.IsDir() {
+	start := time.Now()
 
-				count++
-			}
-			return nil
-		})
-	}
+	Loop(root)
 
-	go Loop(dir)
-	do(dir)
-	time.Sleep(time.Second * 40)
-	fmt.Println("file numbers = ", count)
+	log.Println("file numbers = ", total, "time = ", time.Since(start))
+
 }
 
 func Loop(root string) {
 	fd, err := os.ReadDir(root)
 	if err == nil {
-		for _, f := range fd {
-			if f.IsDir() {
-				limit <- struct{}{}
-				go Loop(filepath.Join(root, f.Name()))
+		for _, file := range fd {
+			if !file.IsDir() {
+				total++
 			} else {
-				log.Print(f.Name())
+				Loop(filepath.Join(root, file.Name()))
 			}
 		}
 	}
-	<-limit
 }
