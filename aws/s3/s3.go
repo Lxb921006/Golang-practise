@@ -1,7 +1,7 @@
 package s3
 
 import (
-	"strings"
+	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -18,8 +18,15 @@ func (p *S3Object) PutObject(src, dst string) (err error) {
 		return
 	}
 
+	of, err := os.Open(src)
+	if err != nil {
+		return
+	}
+
+	defer of.Close()
+
 	input := &s3.PutObjectInput{
-		Body:   aws.ReadSeekCloser(strings.NewReader(src)),
+		Body:   aws.ReadSeekCloser(of),
 		Bucket: aws.String(p.Bucket),
 		Key:    aws.String(dst),
 	}

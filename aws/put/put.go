@@ -15,15 +15,14 @@ var (
 	wg         sync.WaitGroup
 	put        = make(chan string)
 	limit      = make(chan struct{}, 20)
-	toStop     = make(chan struct{}, 1)
+	stop       = make(chan struct{})
+	recvn      = make(chan struct{})
+	n1         = 0
+	n2         = 0
 	iniFile    = flag.String("ini", "", "ini file path")
 	section    = flag.String("section", "", "ini section")
 	region     = flag.String("region", "", "aws region")
 	putSrcPath = flag.String("src", "", "upload file")
-	stop       = make(chan struct{})
-	n1         = 0
-	n2         = 0
-	recvn      = make(chan struct{})
 )
 
 func main() {

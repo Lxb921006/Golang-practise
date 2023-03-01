@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"strings"
+	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -25,8 +25,15 @@ func main() {
 
 	s3api := s3.New(sess)
 
+	of, err := os.Open("C:/Users/Administrator/Desktop/baxi_MGCenter_FULL_20230211_000001.bak")
+	if err != nil {
+		return
+	}
+
+	defer of.Close()
+
 	input := &s3.PutObjectInput{
-		Body:   aws.ReadSeekCloser(strings.NewReader("C:/Users/Administrator/Desktop/baxi_MGCenter_FULL_20230211_000001.bak")),
+		Body:   aws.ReadSeekCloser(of),
 		Bucket: aws.String("db-backup-huawen"),
 		Key:    aws.String("truco/baxi_MGCenter_FULL_20230211_000001.bak"),
 	}
