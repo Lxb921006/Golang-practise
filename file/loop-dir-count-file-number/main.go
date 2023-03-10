@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"os"
 	"path/filepath"
 	"time"
@@ -10,7 +10,7 @@ import (
 var (
 	total = 0
 
-	root = "C:/Users/Administrator/Desktop/update"
+	root = "D:/project/gin/src/github.com/Lxb921006/Gin-bms/.git"
 )
 
 func main() {
@@ -18,7 +18,7 @@ func main() {
 
 	Loop(root)
 
-	log.Println("file numbers = ", total, "time = ", time.Since(start))
+	fmt.Printf("total = %d, time = %v\n", total, time.Since(start))
 
 }
 

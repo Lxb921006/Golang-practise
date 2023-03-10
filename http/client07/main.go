@@ -16,17 +16,26 @@ var (
 func main() {
 
 	links := []string{
-		"https://github.com/x-ream/rey",
-		"https://github.com/ericchiang/k8s",
-		"https://github.com/kubernetes/kops",
-		"https://github.com/nats-io/k8s",
-		"https://github.com/dotbalo/k8s",
-		"https://github.com/Thakurvaibhav/k8s",
-		"https://github.com/lucassha/CKAD-resources",
-		"https://github.com/Thakurvaibhav/k8s",
-		"https://github.com/k8sre/k8s",
-		"https://github.com/k3s-io/k3s",
-		"https://github.com/Thakurvaibhav/k8s",
+		"http://161.117.87.119:10086/user/list/",
+		"http://161.117.87.119:10086/user/list/",
+		"http://161.117.87.119:10086/user/list/",
+		"http://161.117.87.119:10086/user/list/",
+		"http://161.117.87.119:10086/user/list/",
+		"http://161.117.87.119:10086/user/list/",
+		"http://161.117.87.119:10086/user/list/",
+		"http://161.117.87.119:10086/user/list/",
+		"http://161.117.87.119:10086/user/list/",
+		"http://161.117.87.119:10086/user/list/",
+		"http://161.117.87.119:10086/user/list/",
+		"http://161.117.87.119:10086/user/list/",
+		"http://161.117.87.119:10086/user/list/",
+		"http://161.117.87.119:10086/user/list/",
+		"http://161.117.87.119:10086/user/list/",
+		"http://161.117.87.119:10086/user/list/",
+		"http://161.117.87.119:10086/user/list/",
+		"http://161.117.87.119:10086/user/list/",
+		"http://161.117.87.119:10086/user/list/",
+		"http://161.117.87.119:10086/user/list/",
 	}
 
 	client := &http.Client{
@@ -64,11 +73,11 @@ func request(client *http.Client) {
 	for url := range work {
 
 		log.Print("goroutine number = ", runtime.NumGoroutine())
-		_, err := client.Get(url)
+		resp, err := client.Get(url)
 		if err != nil {
-			log.Println("We could not reach:", url, err)
+			log.Println("We could not reach:", url, err, resp.StatusCode)
 		} else {
-			log.Println("Success reaching the website:", url)
+			log.Println("Success reaching the website:", url, resp.StatusCode)
 		}
 
 	}
