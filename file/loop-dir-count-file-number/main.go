@@ -10,7 +10,7 @@ import (
 var (
 	total = 0
 
-	root = "D:/project/gin/src/github.com/Lxb921006/Gin-bms/.git"
+	root = "C:/Windows"
 )
 
 func main() {

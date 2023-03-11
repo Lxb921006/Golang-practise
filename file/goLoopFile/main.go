@@ -19,7 +19,7 @@ var (
 func main() {
 
 	start := time.Now()
-	root := "D:/project/gin/src/github.com/Lxb921006/Gin-bms/.git"
+	root := "C:/Windows"
 
 	for range [20]struct{}{} {
 		go func() {
@@ -47,7 +47,7 @@ func main() {
 		case <-finishCh:
 			signle--
 			if signle == 0 {
-				fmt.Printf("total = %d, time = %v\n", total, time.Since(start))
+				fmt.Printf("total = %d, time = %v/n", total, time.Since(start))
 				return
 			}
 		case <-recvCh:
@@ -67,7 +67,6 @@ func Loop(root string) {
 				totalCh <- struct{}{}
 			} else {
 				fileCh <- filepath.Join(root, file.Name())
-
 			}
 		}
 	}
