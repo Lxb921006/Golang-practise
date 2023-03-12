@@ -19,8 +19,7 @@ var (
 
 func main() {
 	start := time.Now()
-	path := "C:/Windows/"
-	// path := "C:/Users/Administrator/Desktop/test/2"
+	path := "/usr"
 	filename := "test.txt"
 	go func() {
 		for {

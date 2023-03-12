@@ -14,7 +14,8 @@ type Bar chan Customer
 func (bar Bar) ServeCustomer(c Customer) {
 	log.Print("++ customer#", c.id, " starts drinking")
 	log.Print("gn = ", runtime.NumGoroutine())
-	time.Sleep(time.Second * time.Duration(1+rand.Intn(5)))
+	// time.Sleep(time.Second * time.Duration(1+rand.Intn(5)))
+	time.Sleep(time.Second * 30)
 	log.Print("-- customer#", c.id, " leaves the bar")
 	<-bar // leaves the bar and save a space
 }
@@ -26,7 +27,7 @@ func main() {
 	// at the same time.
 	bar24x7 := make(Bar, 10)
 	for customerId := 0; ; customerId++ {
-		time.Sleep(time.Second)
+		time.Sleep(time.Second / 5)
 		customer := Customer{customerId}
 		select {
 		case bar24x7 <- customer: // try to enter the bar
