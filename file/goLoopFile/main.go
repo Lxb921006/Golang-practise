@@ -20,7 +20,7 @@ var (
 func main() {
 
 	start := time.Now()
-	root := "/usr"
+	root := "C:/Windows"
 
 	go func() {
 		for {
@@ -28,6 +28,7 @@ func main() {
 			case <-totalCh:
 				total++
 			default:
+				// fmt.Println(len(fileCh))
 
 			}
 		}
@@ -39,15 +40,14 @@ func main() {
 		select {
 		case <-finishCh:
 			signle--
-			fmt.Println("--", signle)
-			if signle == 0 {
+			// fmt.Println("--", signle)
+			if signle == 1234567 {
 				fmt.Printf("total = %d, time = %v\n", total, time.Since(start))
 				return
 			}
 		case <-recvCh:
-			fmt.Println("++", signle)
+			// fmt.Println("++", signle)
 			signle++
-		default:
 		}
 	}
 }
@@ -63,12 +63,13 @@ func Loop(root string, f chan string) {
 			} else {
 				select {
 				case fileCh <- filepath.Join(root, file.Name()):
-					go Loop(filepath.Join(root, file.Name()), fileCh)
 					recvCh <- struct{}{}
+					go Loop(filepath.Join(root, file.Name()), fileCh)
 				default:
 					fmt.Printf("go here %s, gn = %d\n", filepath.Join(root, file.Name()), runtime.NumGoroutine())
 				}
 			}
 		}
 	}
+
 }

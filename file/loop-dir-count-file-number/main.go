@@ -9,7 +9,7 @@ import (
 
 var (
 	total = 0
-	root  = "/usr"
+	root  = "C:/Windows"
 )
 
 func main() {
