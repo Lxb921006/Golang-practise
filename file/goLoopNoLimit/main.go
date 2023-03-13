@@ -26,7 +26,7 @@ func main() {
 			case <-totalCh:
 				total++
 			default:
-				// fmt.Println(runtime.NumGoroutine())
+				// fmt.Println("gn = ", runtime.NumGoroutine())
 			}
 		}
 	}()
@@ -53,13 +53,14 @@ func Loop(root string, limit chan struct{}, f bool) {
 					wg.Add(1)
 					go Loop(filepath.Join(root, file.Name()), limitCh, false)
 				default:
+					Loop(filepath.Join(root, file.Name()), limitCh, true)
 				}
 			}
 		}
 	}
 
 	if !f {
-		// <-limit
 		wg.Done()
+		<-limit
 	}
 }

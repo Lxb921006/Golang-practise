@@ -14,7 +14,7 @@ type Bar chan Customer
 func (bar Bar) ServeCustomer(c Customer) {
 	log.Print("++ customer#", c.id, " starts drinking")
 	log.Print("gn = ", runtime.NumGoroutine())
-	time.Sleep(time.Second * time.Duration(1+rand.Intn(3)))
+	time.Sleep(time.Second * time.Duration(1+rand.Intn(5)))
 	// time.Sleep(time.Second * 30)
 	log.Print("-- customer#", c.id, " leaves the bar ", len(bar))
 	<-bar // leaves the bar and save a space
@@ -34,6 +34,7 @@ func main() {
 			go bar24x7.ServeCustomer(customer)
 		default:
 			log.Print("customer#", customerId, " goes elsewhere")
+			// <-bar24x7
 		}
 	}
 }
