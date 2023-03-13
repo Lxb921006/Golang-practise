@@ -27,7 +27,7 @@ func main() {
 	// at the same time.
 	bar24x7 := make(Bar, 10)
 	for customerId := 0; ; customerId++ {
-		time.Sleep(time.Second / 5)
+		time.Sleep(time.Second / 7)
 		customer := Customer{customerId}
 		select {
 		case bar24x7 <- customer: // try to enter the bar

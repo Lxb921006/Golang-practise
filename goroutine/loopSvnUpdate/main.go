@@ -13,9 +13,10 @@ import (
 
 // svn update
 type Config struct {
-	Project []string `json:"project"`
-	Limit   int      `json:"limit"`
-	TimeOut int      `json:"timeout"`
+	Project     []string `json:"project"`
+	Limit       int      `json:"limit"`
+	TimeOut     int      `json:"timeout"`
+	ShellScript string   `json:"shellscript"`
 }
 
 func (c Config) PareJson(file string) (b []byte, err error) {
@@ -85,19 +86,13 @@ func main() {
 
 func cmd(p string, ctx context.Context, config Config) (err error) {
 	if config.TimeOut > 0 {
-		// 当exec.CommandContext执行脚本超时((*Cmd).watchCtx)，ctx.Done()接收到截止信号，会去执行(*Cmd).Process.Kill()，并通知该cmd已经被killed
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithTimeout(ctx, time.Second*time.Duration(config.TimeOut))
 		defer cancel()
 	}
 
-	cmd := exec.CommandContext(ctx, "sh", "/root/shellscript/svn_update2.sh", p)
+	cmd := exec.CommandContext(ctx, "sh", config.ShellScript, p)
 	if err = cmd.Run(); err != nil {
-		// select {
-		// case <-ctx.Done():
-		// 	log.Print(ctx.Err()) //input: context deadline exceeded
-		// default:
-		// }
 		return
 	}
 

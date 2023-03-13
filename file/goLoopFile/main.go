@@ -29,7 +29,6 @@ func main() {
 				total++
 			default:
 				// fmt.Println(len(fileCh))
-
 			}
 		}
 	}()
