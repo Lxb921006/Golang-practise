@@ -26,7 +26,6 @@ func main() {
 			case <-totalCh:
 				total++
 			default:
-				// fmt.Println("gn = ", runtime.NumGoroutine())
 			}
 		}
 	}()
@@ -46,8 +45,6 @@ func Loop(root string, limit chan struct{}, f bool) {
 			if !file.IsDir() {
 				totalCh <- struct{}{}
 			} else {
-				// wg.Add(1)
-				// go Loop(filepath.Join(root, file.Name()), limitCh, false)
 				select {
 				case limitCh <- struct{}{}:
 					wg.Add(1)
