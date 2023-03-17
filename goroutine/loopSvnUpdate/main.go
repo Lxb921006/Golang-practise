@@ -93,6 +93,7 @@ func cmd(p string, ctx context.Context, config Config) (err error) {
 
 	cmd := exec.CommandContext(ctx, "sh", config.ShellScript, p)
 	if err = cmd.Run(); err != nil {
+		log.Println("err >>>", err)
 		return
 	}
 
