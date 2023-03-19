@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"time"
 )
 
-//搜索某个目录下的指定名字文件有多少个
+// 搜索某个目录下的指定名字文件有多少个
 type FindFiles struct {
 	Path           string
 	FileName       string
@@ -22,12 +22,12 @@ type FindFiles struct {
 
 func (ff *FindFiles) Ergodic(path string, signle bool) {
 	// fmt.Println("gn = ", runtime.NumGoroutine())
-	fl, err := ioutil.ReadDir(path)
+	fl, err := os.ReadDir(path)
 	if err == nil {
 		for _, file := range fl {
-			if file.Name() == ff.FileName {
-				ff.ResChan <- true
-			}
+			// if file.Name() == ff.FileName {
+			// 	ff.ResChan <- true
+			// }
 			if file.IsDir() {
 				if ff.Workers < ff.MaxWorkers {
 					ff.SearchChan <- path + file.Name() + "/"
