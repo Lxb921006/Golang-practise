@@ -10,13 +10,12 @@ import (
 
 var (
 	wg      sync.WaitGroup
-	limitCh = make(chan struct{}, 20)
 	totalCh = make(chan struct{})
 	total   = 0
 )
 
 func main() {
-
+	limitCh := make(chan struct{}, 20)
 	start := time.Now()
 	root := "C:/Windows"
 
@@ -46,11 +45,11 @@ func Loop(root string, limit chan struct{}, f bool) {
 				totalCh <- struct{}{}
 			} else {
 				select {
-				case limitCh <- struct{}{}:
+				case limit <- struct{}{}:
 					wg.Add(1)
-					go Loop(filepath.Join(root, file.Name()), limitCh, false)
+					go Loop(filepath.Join(root, file.Name()), limit, false)
 				default:
-					Loop(filepath.Join(root, file.Name()), limitCh, true)
+					Loop(filepath.Join(root, file.Name()), limit, true)
 				}
 			}
 		}
