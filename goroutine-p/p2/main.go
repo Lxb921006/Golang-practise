@@ -12,7 +12,7 @@ var (
 )
 
 func main() {
-	path := "C:/Windows/"
+	path := "/Users"
 	// path := "C:/Users/Administrator/Desktop/test/2"
 	filename := "test.txt"
 	start := time.Now()
