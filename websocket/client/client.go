@@ -15,6 +15,7 @@ var interrupt chan os.Signal
 func receiveHandler(connection *websocket.Conn) {
 	defer close(done)
 	for {
+		//接受消息
 		_, msg, err := connection.ReadMessage()
 		if err != nil {
 			log.Println("Error in receive:", err)
@@ -30,7 +31,7 @@ func main() {
 
 	signal.Notify(interrupt, os.Interrupt) // Notify the interrupt channel for SIGINT
 
-	socketUrl := "ws://localhost:8080" + "/socket"
+	socketUrl := "ws://localhost:9092/socket"
 	conn, _, err := websocket.DefaultDialer.Dial(socketUrl, nil)
 	if err != nil {
 		log.Fatal("Error connecting to Websocket Server:", err)
@@ -44,6 +45,7 @@ func main() {
 		select {
 		case <-time.After(time.Duration(1) * time.Millisecond * 1000):
 			// Send an echo packet every second
+			//发送消息
 			err := conn.WriteMessage(websocket.TextMessage, []byte("Hello from GolangDocs!"))
 			if err != nil {
 				log.Println("Error during writing to websocket:", err)

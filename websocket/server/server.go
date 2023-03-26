@@ -26,7 +26,7 @@ func websockethandler(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		log.Printf("Received: %s", message)
-		err = conn.WriteMessage(messageType, message)
+		err = conn.WriteMessage(messageType, []byte("hi i am golang websocket!"))
 		if err != nil {
 			log.Println("Error during message writing:", err)
 			break
