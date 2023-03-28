@@ -46,7 +46,7 @@ func main() {
 		case <-time.After(time.Duration(1) * time.Millisecond * 1000):
 			// Send an echo packet every second
 			//发送消息
-			err := conn.WriteMessage(websocket.TextMessage, []byte("Hello from GolangDocs!"))
+			err := conn.WriteMessage(websocket.TextMessage, []byte("Hello Golang Websocket!"))
 			if err != nil {
 				log.Println("Error during writing to websocket:", err)
 				return
