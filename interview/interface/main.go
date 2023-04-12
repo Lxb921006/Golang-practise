@@ -28,4 +28,19 @@ func main() {
 	}
 
 	GetName(m)
+
+	// ------------------------------------
+	//golang是根据变量的前8个字节是否为零值来判断是否为nil
+	var x interface{} = nil //空的接口赋值给空的接口，16个字节都为零,所以等于nil
+	var y *int = nil        //空的指针对接口进行赋值会导致前8个字节不为空，所以不等于nil，接口是前8个自己指向类型，后8个字节指向数据
+	interfaceNil(x)
+	interfaceNil(y)
+}
+
+func interfaceNil(x interface{}) {
+	if x == nil {
+		fmt.Println("empty interface")
+		return
+	}
+	fmt.Println("non-empty interface")
 }
