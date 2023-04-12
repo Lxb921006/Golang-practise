@@ -45,4 +45,5 @@ func main() {
 	// ----------------情形2-------------------
 	var a Animal = Dog{"eric"}
 	_ = &a
+	fmt.Println("a addr = ", &a)
 }
