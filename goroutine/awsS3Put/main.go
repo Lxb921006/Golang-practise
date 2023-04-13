@@ -64,7 +64,7 @@ func LoopDir(root string, limit chan struct{}, finished bool) {
 	fd, err := os.ReadDir(root)
 	if err == nil {
 		for _, file := range fd {
-			if strings.HasPrefix(filepath.Join(root, file.Name()), "sbl_") {
+			if strings.Contains(filepath.Join(root, file.Name()), "sbl_") {
 				if file.Name() == "MGLog" || file.Name() == "LOG" {
 					continue
 				}
@@ -80,7 +80,7 @@ func LoopDir(root string, limit chan struct{}, finished bool) {
 					WorkChan <- filepath.Join(root, file.Name())
 				}
 			}
-			
+
 		}
 	}
 
