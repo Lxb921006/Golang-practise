@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -13,10 +14,10 @@ import (
 )
 
 var (
-	limitChan = make(chan struct{}, 20)
-	WorkChan  = make(chan string)
-	wg        sync.WaitGroup
-
+	limitChan  = make(chan struct{}, 20)
+	WorkChan   = make(chan string)
+	wg         sync.WaitGroup
+	stopChan   = make(chan struct{}, 1)
 	iniFile    = flag.String("ini", "", "ini file path")
 	section    = flag.String("section", "", "ini section")
 	region     = flag.String("region", "", "aws region")
@@ -44,7 +45,8 @@ func main() {
 				} else {
 					log.Printf("%s failed to upload aws s3, esg >>> %s", filepath.Base(file), err.Error())
 				}
-			default:
+			case <-stopChan:
+				return
 			}
 		}
 	}()
@@ -53,6 +55,8 @@ func main() {
 
 	wg.Wait()
 
+	stopChan <- struct{}{}
+
 	fmt.Printf("time = %v\n", time.Since(start))
 }
 
@@ -60,20 +64,23 @@ func LoopDir(root string, limit chan struct{}, finished bool) {
 	fd, err := os.ReadDir(root)
 	if err == nil {
 		for _, file := range fd {
-			if file.Name() == "MGLog" || file.Name() == "LOG" {
-				continue
-			}
-			if file.IsDir() {
-				select {
-				case limit <- struct{}{}:
-					wg.Add(1)
-					go LoopDir(filepath.Join(root, file.Name()), limit, false)
-				default:
-					LoopDir(filepath.Join(root, file.Name()), limit, true)
+			if strings.HasPrefix(filepath.Join(root, file.Name()), "sbl_") {
+				if file.Name() == "MGLog" || file.Name() == "LOG" {
+					continue
 				}
-			} else {
-				WorkChan <- filepath.Join(root, file.Name())
+				if file.IsDir() {
+					select {
+					case limit <- struct{}{}:
+						wg.Add(1)
+						go LoopDir(filepath.Join(root, file.Name()), limit, false)
+					default:
+						LoopDir(filepath.Join(root, file.Name()), limit, true)
+					}
+				} else {
+					WorkChan <- filepath.Join(root, file.Name())
+				}
 			}
+			
 		}
 	}
 
