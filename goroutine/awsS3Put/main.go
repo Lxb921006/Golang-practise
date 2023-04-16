@@ -17,6 +17,7 @@ var (
 	limitChan  = make(chan struct{}, 20)
 	WorkChan   = make(chan string)
 	wg         sync.WaitGroup
+	wg2        sync.WaitGroup
 	stopChan   = make(chan struct{}, 1)
 	iniFile    = flag.String("ini", "", "ini file path")
 	section    = flag.String("section", "", "ini section")
@@ -26,7 +27,12 @@ var (
 
 func main() {
 	start := time.Now()
+
 	flag.Parse()
+	if flag.NFlag() != 4 {
+		log.Fatalln(flag.ErrHelp.Error())
+	}
+
 	root := *putSrcPath
 
 	config := []string{*iniFile, *section, *region}
@@ -51,11 +57,31 @@ func main() {
 		}
 	}()
 
+	// const recv = 20
+	// wg2.Add(recv)
+	// for range [recv]struct{}{} {
+	// 	go func() {
+	// 		defer wg2.Done()
+	// 		for file := range WorkChan {
+	// 			err := s3api.PutObject(file, "truco/"+filepath.Base(file))
+	// 			if err == nil {
+	// 				log.Printf("%s succeed to upload aws s3", filepath.Base(file))
+	// 			} else {
+	// 				log.Printf("%s failed to upload aws s3, esg >>> %s", filepath.Base(file), err.Error())
+	// 			}
+	// 		}
+	// 	}()
+	// }
+
 	LoopDir(root, limitChan, true)
 
-	wg.Wait()
+	wg.Wait() //等待遍历完所有目录
 
 	stopChan <- struct{}{}
+
+	// close(WorkChan)
+
+	// wg2.Wait() //等待所有文件都已经上传完
 
 	fmt.Printf("time = %v\n", time.Since(start))
 }
@@ -64,7 +90,7 @@ func LoopDir(root string, limit chan struct{}, finished bool) {
 	fd, err := os.ReadDir(root)
 	if err == nil {
 		for _, file := range fd {
-			if strings.Contains(filepath.Join(root, file.Name()), "sbl_") {
+			if strings.Contains(filepath.Join(root, file.Name()), "2023") {
 				if file.Name() == "MGLog" || file.Name() == "LOG" {
 					continue
 				}
@@ -80,7 +106,6 @@ func LoopDir(root string, limit chan struct{}, finished bool) {
 					WorkChan <- filepath.Join(root, file.Name())
 				}
 			}
-
 		}
 	}
 

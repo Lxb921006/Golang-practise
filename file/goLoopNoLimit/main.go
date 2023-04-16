@@ -17,7 +17,7 @@ var (
 func main() {
 	limitCh := make(chan struct{}, 20)
 	start := time.Now()
-	root := "/Users/"
+	root := "C:/Users/Administrator/Desktop/log"
 
 	go func() {
 		for {
@@ -33,7 +33,7 @@ func main() {
 
 	wg.Wait()
 
-	fmt.Printf("total = %d, time = %v\n", total, time.Since(start))
+	fmt.Printf("total = %d, time = %v/n", total, time.Since(start))
 
 }
 

@@ -26,7 +26,7 @@ func Loop(root string) {
 	fd, err := os.ReadDir(root)
 	if err == nil {
 		for _, file := range fd {
-			if strings.Contains(filepath.Join(root, file.Name()), "2023") {
+			if strings.Contains(filepath.Join(root, file.Name()), "sbl") {
 				if !file.IsDir() {
 					fmt.Println(filepath.Join(root, file.Name()))
 					total++
