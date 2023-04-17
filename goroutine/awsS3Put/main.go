@@ -17,8 +17,6 @@ var (
 	limitChan  = make(chan struct{}, 20)
 	WorkChan   = make(chan string)
 	wg         sync.WaitGroup
-	wg2        sync.WaitGroup
-	stopChan   = make(chan struct{}, 1)
 	iniFile    = flag.String("ini", "", "ini file path")
 	section    = flag.String("section", "", "ini section")
 	region     = flag.String("region", "", "aws region")
@@ -26,12 +24,14 @@ var (
 )
 
 func main() {
-	start := time.Now()
 
 	flag.Parse()
 	if flag.NFlag() != 4 {
 		log.Fatalln(flag.ErrHelp.Error())
 	}
+
+	start := time.Now()
+	const recv = 40
 
 	root := *putSrcPath
 
@@ -41,47 +41,27 @@ func main() {
 		S3Sess: s3.NewS3Sess(config...),
 	}
 
-	go func() {
-		for {
-			select {
-			case file := <-WorkChan:
+	for range [recv]struct{}{} {
+		go func() {
+			for file := range WorkChan {
+				fmt.Println(file)
 				err := s3api.PutObject(file, "truco/"+filepath.Base(file))
 				if err == nil {
 					log.Printf("%s succeed to upload aws s3", filepath.Base(file))
 				} else {
 					log.Printf("%s failed to upload aws s3, esg >>> %s", filepath.Base(file), err.Error())
 				}
-			case <-stopChan:
-				return
 			}
-		}
-	}()
-
-	// const recv = 20
-	// wg2.Add(recv)
-	// for range [recv]struct{}{} {
-	// 	go func() {
-	// 		defer wg2.Done()
-	// 		for file := range WorkChan {
-	// 			err := s3api.PutObject(file, "truco/"+filepath.Base(file))
-	// 			if err == nil {
-	// 				log.Printf("%s succeed to upload aws s3", filepath.Base(file))
-	// 			} else {
-	// 				log.Printf("%s failed to upload aws s3, esg >>> %s", filepath.Base(file), err.Error())
-	// 			}
-	// 		}
-	// 	}()
-	// }
+		}()
+	}
 
 	LoopDir(root, limitChan, true)
 
-	wg.Wait() //等待遍历完所有目录
+	wg.Wait()
 
-	stopChan <- struct{}{}
+	fmt.Println("loop dir finished, will close WorkChan")
 
-	// close(WorkChan)
-
-	// wg2.Wait() //等待所有文件都已经上传完
+	close(WorkChan)
 
 	fmt.Printf("time = %v\n", time.Since(start))
 }
