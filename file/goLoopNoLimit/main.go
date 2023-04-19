@@ -24,7 +24,6 @@ func main() {
 			select {
 			case <-totalCh:
 				total++
-				fmt.Println(total)
 			default:
 			}
 		}

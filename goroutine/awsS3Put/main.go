@@ -17,6 +17,7 @@ var (
 	limitChan  = make(chan struct{}, 20)
 	WorkChan   = make(chan string)
 	wg         sync.WaitGroup
+	wg1        sync.WaitGroup
 	iniFile    = flag.String("ini", "", "ini file path")
 	section    = flag.String("section", "", "ini section")
 	region     = flag.String("region", "", "aws region")
@@ -31,8 +32,7 @@ func main() {
 	}
 
 	start := time.Now()
-	const recv = 40
-
+	const recvWork = 40
 	root := *putSrcPath
 
 	config := []string{*iniFile, *section, *region}
@@ -41,10 +41,11 @@ func main() {
 		S3Sess: s3.NewS3Sess(config...),
 	}
 
-	for range [recv]struct{}{} {
+	wg1.Add(recvWork)
+	for range [recvWork]struct{}{} {
 		go func() {
+			defer wg1.Done()
 			for file := range WorkChan {
-				fmt.Println(file)
 				err := s3api.PutObject(file, "truco/"+filepath.Base(file))
 				if err == nil {
 					log.Printf("%s succeed to upload aws s3", filepath.Base(file))
@@ -57,11 +58,11 @@ func main() {
 
 	LoopDir(root, limitChan, true)
 
-	wg.Wait()
-
-	fmt.Println("loop dir finished, will close WorkChan")
+	wg.Wait() //这里是为了等待遍历完所有目录，然后关闭WorkChan
 
 	close(WorkChan)
+
+	wg1.Wait() //这里是为了等待所有文件都上传完
 
 	fmt.Printf("time = %v\n", time.Since(start))
 }
@@ -70,7 +71,7 @@ func LoopDir(root string, limit chan struct{}, finished bool) {
 	fd, err := os.ReadDir(root)
 	if err == nil {
 		for _, file := range fd {
-			if strings.Contains(filepath.Join(root, file.Name()), "2023") {
+			if strings.Contains(filepath.Join(root, file.Name()), "sbl_db") {
 				if file.Name() == "MGLog" || file.Name() == "LOG" {
 					continue
 				}
