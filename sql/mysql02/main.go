@@ -3,30 +3,27 @@ package main
 import (
 	"fmt"
 	"log"
-	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
-type CronsCrontabs struct {
-	ID          uint      `gorm:"primaryKey" json:"id"`
-	OperateUser string    `gorm:"not null" json:"operator"`
-	Mission     string    `gorm:"not null" json:"cron"`
-	StartTime   time.Time `json:"st"`
-	EndTime     time.Time `json:"et"`
-	Status      uint      `gorm:"default:100" json:"status"`
-	Project     string    `gorm:"not null" json:"project"`
+type Tabler interface {
+	TableName() string
+}
+
+type SmbModel struct {
+	ID        uint   `gorm:"primaryKey" json:"id"`
+	Name      string `gorm:"not null" json:"name"`
+	ShareName string `gorm:"not null" json:"shareName"`
+}
+
+func (SmbModel) TableName() string {
+	return "smbServe_smbusermodel"
 }
 
 func main() {
-	// sqlDB, err := sql.Open("mysql", "root:123321@tcp(43.138.184.202:34306)/cmdb?charset=utf8mb4&parseTime=True&loc=Local")
-	// if err != nil {
-	// 	log.Print(err)
-	// 	return
-	// }
-
 	DB, err := gorm.Open(mysql.New(mysql.Config{
 		DSN:                       "root:123321@tcp(43.134.182.215:34306)/cmdb?charset=utf8mb4&parseTime=True&loc=Local", // DSN data source name
 		DefaultStringSize:         256,                                                                                   // string 类型字段的默认长度
@@ -48,22 +45,14 @@ func main() {
 
 	defer db.Close()
 
-	db.SetMaxIdleConns(10)
-	db.SetMaxOpenConns(100)
-	db.SetConnMaxLifetime(time.Hour)
+	var sss []SmbModel
 
-	if err := db.Ping(); err != nil {
-		log.Print(err)
-		return
-	}
+	uid := []uint{35}
 
-	var ccs []CronsCrontabs
+	DB.Find(&sss, uid)
 
-	err = DB.Find(&ccs).Error
-	if err != nil {
-		log.Print("find err =", err)
-	}
+	fmt.Println(sss)
 
-	fmt.Println(ccs)
+	DB.Where("id IN ?", uid).Unscoped().Delete(&SmbModel{})
 
 }
