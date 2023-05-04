@@ -18,3 +18,4 @@ main
 .vscode
 *.o
 *.h
+.idea
