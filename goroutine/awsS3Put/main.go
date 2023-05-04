@@ -32,17 +32,17 @@ func main() {
 	}
 
 	start := time.Now()
-	const recvWork = 40
+	const recWork int = 10
 	root := *putSrcPath
 
 	config := []string{*iniFile, *section, *region}
-	s3api := &s3.S3Object{
+	s3api := &s3.Object{
 		Bucket: "db-backup-huawen",
 		S3Sess: s3.NewS3Sess(config...),
 	}
 
-	wg1.Add(recvWork)
-	for range [recvWork]struct{}{} {
+	wg1.Add(recWork)
+	for range [recWork]struct{}{} {
 		go func() {
 			defer wg1.Done()
 			for file := range WorkChan {

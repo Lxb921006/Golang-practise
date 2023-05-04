@@ -35,7 +35,7 @@ func main() {
 	wg.Add(20)
 
 	config := []string{*iniFile, *section, *region}
-	s3api := &s3.S3Object{
+	s3api := &s3.Object{
 		Bucket: "db-backup-huawen",
 		S3Sess: s3.NewS3Sess(config...),
 	}

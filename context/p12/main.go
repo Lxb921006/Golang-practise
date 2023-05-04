@@ -13,11 +13,9 @@ func main() {
 
 	ctx := context.Background()
 
-	if timeout > 0 {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
-		defer cancel()
-	}
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
+	defer cancel()
 
 	cmd := exec.CommandContext(ctx, "sleep", "1")
 	if err := cmd.Run(); err != nil {

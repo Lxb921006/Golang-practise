@@ -7,12 +7,12 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-type S3Object struct {
+type Object struct {
 	S3Sess *S3Sess
 	Bucket string
 }
 
-func (p *S3Object) PutObject(src, dst string) (err error) {
+func (p *Object) PutObject(src, dst string) (err error) {
 	s3api, err := p.S3Sess.s3sess()
 	if err != nil {
 		return
@@ -23,10 +23,16 @@ func (p *S3Object) PutObject(src, dst string) (err error) {
 		return
 	}
 
-	defer of.Close()
+	defer func(of *os.File) {
+		err := of.Close()
+		if err != nil {
+			return
+		}
+	}(of)
 
 	input := &s3.PutObjectInput{
-		Body:   aws.ReadSeekCloser(of),
+		//Body:   aws.ReadSeekCloser(of),
+		Body:   of,
 		Bucket: aws.String(p.Bucket),
 		Key:    aws.String(dst),
 	}

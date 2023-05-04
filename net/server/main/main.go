@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net"
 )
 
@@ -20,20 +21,25 @@ func main() {
 
 func Server() {
 	fmt.Println("开始监听...")
-	l, e1 := net.Listen("tcp", "0.0.0.0:8092")
-	if e1 != nil {
-		fmt.Println("listen 8092 failed")
+	l, err := net.Listen("tcp", ":8092")
+	if err != nil {
+		log.Println("listen 8092 failed, esg >>>", err)
 		return
 	}
 
-	defer l.Close()
+	defer func(l net.Listener) {
+		err := l.Close()
+		if err != nil {
+			return
+		}
+	}(l)
 
 	for {
-		c, e2 := l.Accept()
-		if e2 != nil {
-			fmt.Println(e2)
+		c, err := l.Accept()
+		if err != nil {
+			log.Println(err)
 		} else {
-			fmt.Printf("客户端=%v已连接\n", c.RemoteAddr().String())
+			log.Printf("客户端=%v已连接\n", c.RemoteAddr().String())
 		}
 		for i := 0; i < 2; i++ {
 			go Process(c)
@@ -42,18 +48,27 @@ func Server() {
 }
 
 func Process(con net.Conn) {
-	defer con.Close()
+	defer func(con net.Conn) {
+		err := con.Close()
+		if err != nil {
+			return
+		}
+	}(con)
+
 	for {
 		buf := make([]byte, 1024)
 		//读取客户端发来的数据, 如果客户端一直没发消息会阻塞,会出现超时
-		n, e := con.Read(buf)
-		if e != nil {
-			fmt.Printf("客户端=%v已退出\n", con.RemoteAddr().String())
+		n, err := con.Read(buf)
+		if err != nil {
+			log.Printf("客户端=%v已退出\n", con.RemoteAddr().String())
 			return
 		}
 		//显示到终端
-		fmt.Printf("客户端=%v, 发送的内容=%v", con.RemoteAddr().String(), string(buf[:n]))
+		log.Printf("客户端=%v, 接收到的消息=%v", con.RemoteAddr().String(), string(buf[:n]))
 		//回复
-		con.Write([]byte("ok"))
+		_, err = con.Write([]byte("ok"))
+		if err != nil {
+			return
+		}
 	}
 }

@@ -2,7 +2,7 @@ package main
 
 import (
 	"bufio"
-	"fmt"
+	"log"
 	"net"
 	"os"
 	"regexp"
@@ -14,13 +14,18 @@ func main() {
 
 func Client() {
 	//tcp编程客户端
-	c, e1 := net.Dial("tcp", "192.168.11.188:8092")
-	if e1 != nil {
-		fmt.Println(e1)
+	c, err := net.Dial("tcp", "127.0.0.1:8092")
+	if err != nil {
+		log.Println(err)
 		return
 	}
 
-	defer c.Close()
+	defer func(c net.Conn) {
+		err := c.Close()
+		if err != nil {
+			return
+		}
+	}(c)
 
 	//发送单行数据
 	reader := bufio.NewReader(os.Stdin)
@@ -38,17 +43,12 @@ func Client() {
 		}
 
 		//将输入的内容发送到服务端
-		_, e3 := c.Write([]byte(content))
-		if e3 != nil {
-			fmt.Println(e3)
-		}
-
-		_, e3 = c.Write([]byte("lxb2"))
-		if e3 != nil {
-			fmt.Println(e3)
+		_, err := c.Write([]byte(content))
+		if err != nil {
+			log.Println(err)
 		}
 
 		n, _ := c.Read(buf)
-		fmt.Println(string(buf[:n]))
+		log.Println("接收到消息:", string(buf[:n]))
 	}
 }
