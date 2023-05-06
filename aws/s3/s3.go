@@ -1,46 +1,40 @@
 package s3
 
 import (
-	"os"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"bytes"
+	"context"
+	"fmt"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
 type Object struct {
-	S3Sess *S3Sess
-	Bucket string
+	S3Client *s3.Client
+	Bucket   string
 }
 
-func (p *Object) PutObject(src, dst string) (err error) {
-	s3api, err := p.S3Sess.s3sess()
-	if err != nil {
-		return
-	}
+func (p *Object) PutLargeObject(src, dst string) (err error) {
+	largeObject := []byte(src)
+	largeBuffer := bytes.NewReader(largeObject)
+	var partMiBs int64 = 10
 
-	of, err := os.Open(src)
-	if err != nil {
-		return
-	}
-
-	defer func(of *os.File) {
-		err := of.Close()
-		if err != nil {
-			return
-		}
-	}(of)
+	uploader := manager.NewUploader(p.S3Client, func(u *manager.Uploader) {
+		u.PartSize = partMiBs * 1024 * 1024
+	})
 
 	input := &s3.PutObjectInput{
-		//Body:   aws.ReadSeekCloser(of),
-		Body:   of,
+		Body:   largeBuffer,
 		Bucket: aws.String(p.Bucket),
 		Key:    aws.String(dst),
 	}
 
-	_, err = s3api.PutObject(input)
+	_, err = uploader.Upload(context.TODO(), input)
+
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 
-	return
+	return err
 }

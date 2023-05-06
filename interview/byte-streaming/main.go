@@ -6,20 +6,17 @@ import (
 )
 
 func main() {
-	var chunks = make([][]byte, 5)
+	size := 5
+	var chunks = make([][]byte, size)
+
 	var chunk []byte
 	s := "aabb cc ddv cc dd cc dd 234 asda"
 	b := []byte(s)
 
-	fmt.Println("len(b) = ", len(b))
-
-	for len(b) >= 5 {
-		chunk, b = b[:5], b[5:]
+	for len(b) >= size {
+		chunk, b = b[:size], b[size:]
 		chunks = append(chunks, chunk)
-		fmt.Println("len = ", len(b))
 	}
-
-	fmt.Println(chunks)
 
 	if len(b) > 0 {
 		chunks = append(chunks, b[:])
@@ -28,12 +25,25 @@ func main() {
 	fmt.Println(chunks)
 
 	file := "C:/Users/Administrator/Desktop/aa.txt"
+	wi, err := os.OpenFile(file, os.O_CREATE|os.O_APPEND, 0777)
+	if err != nil {
+		return
+	}
+
+	defer func(wi *os.File) {
+		err := wi.Close()
+		if err != nil {
+			return
+		}
+	}(wi)
 
 	for _, chunk := range chunks {
 		fmt.Println(string(chunk))
-		os.WriteFile(file, chunk, 0777)
+		_, err := wi.WriteString(string(chunk))
+		if err != nil {
+			return
+		}
 	}
-
 }
 
 // 将切片分割成统一的chunks块
