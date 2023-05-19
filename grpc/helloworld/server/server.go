@@ -20,7 +20,7 @@ type server struct {
 }
 
 func (s *server) SayHelloWorld(ctx context.Context, req *pb.HelloRequest) (resp *pb.HelloReply, err error) {
-	log.Print("recv message")
+	log.Printf("recv message: %s", req.GetName())
 	data := "hello " + req.GetName()
 	r := &pb.HelloReply{
 		Message: data,
