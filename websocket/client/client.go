@@ -15,7 +15,7 @@ var interrupt chan os.Signal
 func receiveHandler(connection *websocket.Conn) {
 	defer close(done)
 	for {
-		//接受消息
+		//接收
 		_, msg, err := connection.ReadMessage()
 		if err != nil {
 			log.Println("Error in receive:", err)
@@ -31,7 +31,7 @@ func main() {
 
 	signal.Notify(interrupt, os.Interrupt) // Notify the interrupt channel for SIGINT
 
-	socketUrl := "ws://localhost:9092/socket"
+	socketUrl := "ws://localhost:9092/ws"
 	conn, _, err := websocket.DefaultDialer.Dial(socketUrl, nil)
 	if err != nil {
 		log.Fatal("Error connecting to Websocket Server:", err)
@@ -43,6 +43,7 @@ func main() {
 	// We send our relevant packets here
 	for {
 		select {
+		//发送
 		case <-time.After(time.Duration(1) * time.Millisecond * 1000):
 			// Send an echo packet every second
 			//发送消息
@@ -51,7 +52,7 @@ func main() {
 				log.Println("Error during writing to websocket:", err)
 				return
 			}
-
+		//监听键盘退出
 		case <-interrupt:
 			// We received a SIGINT (Ctrl + C). Terminate gracefully...
 			log.Println("Received SIGINT interrupt signal. Closing all pending connections")

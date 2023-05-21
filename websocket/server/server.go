@@ -7,10 +7,10 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var upgrader = websocket.Upgrader{}
+var upGrader = websocket.Upgrader{}
 
-func websockethandler(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
+func websocketHandler(w http.ResponseWriter, r *http.Request) {
+	conn, err := upGrader.Upgrade(w, r, nil)
 
 	if err != nil {
 		log.Print("Error during connection upgradation:", err)
@@ -36,6 +36,6 @@ func websockethandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/socket", websockethandler)
+	http.HandleFunc("/ws", websocketHandler)
 	log.Fatal(http.ListenAndServe("127.0.0.1:9092", nil))
 }
