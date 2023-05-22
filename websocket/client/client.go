@@ -37,6 +37,7 @@ func main() {
 		log.Fatal("Error connecting to Websocket Server:", err)
 	}
 	defer conn.Close()
+
 	go receiveHandler(conn)
 
 	// Our main loop for the client
