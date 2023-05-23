@@ -14,8 +14,7 @@ service UpdateProcess {
 
 // The request message containing the user's name. 1代表的是id在一个message 里边是唯一的, 不能重复
 message CmdRequest {
-  string name = 1;
-  string ip = 2;
+  string message = 1;
 }
 
 // The response message containing the greetings
