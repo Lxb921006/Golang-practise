@@ -37,14 +37,6 @@ func (s *server) SayHelloWorld(req *pb.StreamRequest, stream pb.StreamRpcService
 		return
 	}
 
-	//for range [10]struct{}{} {
-	//	if err = stream.Send(&pb.StreamReply{
-	//		Message: "hello rpc",
-	//	}); err != nil {
-	//		return
-	//	}
-	//}
-
 	return
 }
 
