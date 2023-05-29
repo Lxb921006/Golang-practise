@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"time"
 
 	"github.com/go-redis/redis"
@@ -9,12 +9,13 @@ import (
 
 var rdPool *redis.Client
 
-//在主函数(也就是main())执行之前就已经执行
+// 在主函数(也就是main())执行之前就已经执行
 func init() { //初始化
 	rdPool = redis.NewClient(&redis.Options{
-		Addr:         "101.35.143.86:6377",
-		DB:           0,
+		Addr:         "43.156.170.122:6378",
+		DB:           10,
 		MinIdleConns: 5,
+		Password:     "chatai",
 		PoolSize:     5,
 		PoolTimeout:  30 * time.Second,
 		DialTimeout:  1 * time.Second,
@@ -26,19 +27,27 @@ func init() { //初始化
 func main() {
 	//redis连接池使用
 
-	con := rdPool.Options().PoolSize
+	var data1 = make(map[string]string)
 
-	fmt.Println("con=", con)
+	log.Printf("type = %s", data1["result"])
 
-	s, e := rdPool.Set("name", "lqm", 30*time.Second).Result()
+	//con := rdPool.Options().PoolSize
+	//
+	//fmt.Println("con=", con)
+	//
+	//s, e := rdPool.HSet("aaaaaa", "name", "lxb").Result()
+	//
+	//fmt.Println("s = ", s)
 
-	fmt.Println("s = ", s)
-
-	if e != nil {
-		fmt.Println("e = ", e)
+	result, err := rdPool.HGet("prcessstatus", "running").Result()
+	if err != nil {
+		log.Println(err)
+		return
 	}
 
-	fmt.Println("data = ", rdPool.Get("name").Val())
+	data1["result"] = result
+
+	log.Println(data1)
 
 	defer rdPool.Close()
 }
