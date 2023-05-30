@@ -11,14 +11,14 @@ import (
 )
 
 func main() {
-	conn, err := grpc.Dial("43.134.182.215:12306", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(":12306", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
 
 	c := pb.NewStreamRpcServiceClient(conn)
 
-	stream, err := c.SayHelloWorld(context.Background(), &pb.StreamRequest{})
+	stream, err := c.SayHelloWorld(context.Background(), &pb.StreamRequest{Name: "lxb"})
 	if err != nil {
 		log.Fatal(err)
 	}

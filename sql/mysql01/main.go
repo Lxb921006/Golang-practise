@@ -20,6 +20,9 @@ type CronsCrontabs struct {
 	Project     string    `gorm:"not null" json:"project"`
 }
 
+type Cron struct {
+}
+
 func main() {
 	// sqlDB, err := sql.Open("mysql", "root:123321@tcp(43.138.184.202:34306)/cmdb?charset=utf8mb4&parseTime=True&loc=Local")
 	// if err != nil {
