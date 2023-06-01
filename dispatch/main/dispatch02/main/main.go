@@ -29,6 +29,7 @@ func main() {
 		Age:   30,
 		hobby: "bas",
 	}
+	fmt.Println("----------Dispatch03---------")
 	Dispatch03(&s01)
 	fmt.Println("s01=", s01) //{lxb 18}
 	fmt.Println("----------Dispatch04---------")
