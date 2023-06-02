@@ -44,8 +44,10 @@ func Dispatch03(v interface{}) {
 	//v1.Elem()相当于取到(*s01)
 	fmt.Println("v1=", v1.Elem()) //{lxb 30}
 	v2 := v1.Elem().Field(1)      // Age的值30
-	v2.SetInt(18)                 // 修改Age的值为18
-	fmt.Println("v2=", v2)        //18
+	v2.SetInt(18)
+
+	// 修改Age的值为18
+	fmt.Println("v2=", v2) //18
 
 	v3 := v1.Elem().Method(0)
 	if v3.IsValid() {
