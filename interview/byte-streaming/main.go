@@ -6,21 +6,23 @@ import (
 )
 
 func main() {
-	size := 5
-	var chunks = make([][]byte, size)
+	//size := 5
+	//var chunks = make([][]byte, size)
 
-	var chunk []byte
+	//var chunk []byte
 	s := "aabb cc ddv cc dd cc dd 234 asda"
 	b := []byte(s)
 
-	for len(b) >= size {
-		chunk, b = b[:size], b[size:]
-		chunks = append(chunks, chunk)
-	}
-
-	if len(b) > 0 {
-		chunks = append(chunks, b[:])
-	}
+	//for len(b) >= size {
+	//	chunk, b = b[:size], b[size:]
+	//	chunks = append(chunks, chunk)
+	//}
+	//
+	//if len(b) > 0 {
+	//	chunks = append(chunks, b[:])
+	//}
+	//
+	chunks := chunkSlice(b, 5)
 
 	fmt.Println(chunks)
 
@@ -47,8 +49,8 @@ func main() {
 }
 
 // 将切片分割成统一的chunks块
-func chunkSlice(slice []int, chunkSize int) [][]int {
-	var chunks [][]int
+func chunkSlice(slice []byte, chunkSize int) [][]byte {
+	var chunks [][]byte
 
 	for {
 		if len(slice) == 0 {
