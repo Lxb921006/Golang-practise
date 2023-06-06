@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"runtime"
 	"sync"
 	"time"
 )
@@ -13,7 +14,8 @@ type Task func(cxt context.Context)
 type MultiWork struct {
 	Works chan Task
 	Limit chan struct{}
-	Wg    *sync.WaitGroup
+	Wg    sync.WaitGroup
+	Max   int
 }
 
 func NewMultiWork(workers int) *MultiWork {
@@ -24,8 +26,11 @@ func NewMultiWork(workers int) *MultiWork {
 
 	go func() {
 		for task := range nm.Works {
+
 			nm.Limit <- struct{}{}
 			nm.Wg.Add(1)
+
+			fmt.Println(runtime.NumGoroutine())
 
 			go func(task Task) {
 				defer func() {
