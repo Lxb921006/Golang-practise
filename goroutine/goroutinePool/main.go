@@ -22,7 +22,6 @@ func NewWorkerPool(size int, bufferSize int) *WorkerPool {
 	for i := 0; i < size; i++ {
 		go func() {
 			defer pool.waitGroup.Done()
-
 			for job := range pool.jobs {
 				job()
 			}
