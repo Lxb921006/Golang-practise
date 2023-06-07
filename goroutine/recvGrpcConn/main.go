@@ -9,13 +9,14 @@ import (
 	"time"
 )
 
-type Task func(cxt context.Context)
+type Task func(ctx context.Context)
 
 type MultiWork struct {
-	Works chan Task
-	Limit chan struct{}
-	Wg    sync.WaitGroup
-	Max   int
+	Works   chan Task
+	Limit   chan struct{}
+	Wg      sync.WaitGroup
+	lock    sync.Mutex
+	running int
 }
 
 func NewMultiWork(workers int) *MultiWork {
@@ -26,19 +27,15 @@ func NewMultiWork(workers int) *MultiWork {
 
 	go func() {
 		for task := range nm.Works {
+			//fmt.Println("running = ", nm.running)
+			fmt.Println("gn = ", runtime.NumGoroutine())
 
 			nm.Limit <- struct{}{}
 			nm.Wg.Add(1)
 
-			fmt.Println(runtime.NumGoroutine())
-
 			go func(task Task) {
-				defer func() {
-					nm.Wg.Done()
-					<-nm.Limit
-				}()
-
 				ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+				defer func() { nm.dec(); nm.Wg.Done() }()
 				defer cancel()
 
 				var done = make(chan struct{})
@@ -49,12 +46,14 @@ func NewMultiWork(workers int) *MultiWork {
 				}()
 
 				select {
-				case <-done:
 				case <-ctx.Done():
 					fmt.Println("timeout")
+				case <-done:
 				}
 
+				<-nm.Limit
 			}(task)
+			nm.inc()
 		}
 	}()
 
@@ -70,6 +69,18 @@ func (mw *MultiWork) Close() {
 	close(mw.Works)
 }
 
+func (mw *MultiWork) inc() {
+	mw.lock.Lock()
+	mw.running++
+	mw.lock.Unlock()
+}
+
+func (mw *MultiWork) dec() {
+	mw.lock.Lock()
+	mw.running--
+	mw.lock.Unlock()
+}
+
 func main() {
 
 	rand.Seed(time.Now().UnixNano())
@@ -77,16 +88,29 @@ func main() {
 	nm := NewMultiWork(10)
 
 	for i := 1; i < 100; i++ {
-		nm.Add(func(cxt context.Context) {
-
-			select {
-			case <-time.After(time.Second * time.Duration(1+rand.Intn(5))):
-				fmt.Println(rand.Intn(1000))
-			case <-cxt.Done():
+		nm.Add(func(ctx context.Context) {
+			for {
+				select {
+				case <-ctx.Done():
+				default:
+					if err := ctx.Err(); err != nil {
+						return
+					}
+					time.Sleep(time.Second * time.Duration(1+rand.Intn(5)))
+					fmt.Println(rand.Intn(1000))
+				}
 			}
 
 		})
 	}
 
 	nm.Close()
+	i := 25
+
+	for i >= 0 {
+		fmt.Println("close gn = ", runtime.NumGoroutine())
+		fmt.Println("running = ", nm.running)
+		i--
+		time.Sleep(time.Second)
+	}
 }
