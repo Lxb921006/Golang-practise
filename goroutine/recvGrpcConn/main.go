@@ -26,21 +26,23 @@ func NewMultiWork(workers int) *MultiWork {
 	}
 
 	go func() {
+
 		for task := range nm.Works {
-			//fmt.Println("running = ", nm.running)
+			fmt.Println("running = ", nm.running)
 			fmt.Println("gn = ", runtime.NumGoroutine())
 
 			nm.Limit <- struct{}{}
 			nm.Wg.Add(1)
 
 			go func(task Task) {
+				defer func() { nm.Wg.Done() }()
 				ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
-				defer func() { nm.dec(); nm.Wg.Done() }()
+
 				defer cancel()
 
 				var done = make(chan struct{})
-
 				go func() {
+
 					task(ctx)
 					done <- struct{}{}
 				}()
@@ -53,7 +55,7 @@ func NewMultiWork(workers int) *MultiWork {
 
 				<-nm.Limit
 			}(task)
-			nm.inc()
+
 		}
 	}()
 
@@ -65,8 +67,9 @@ func (mw *MultiWork) Add(task Task) {
 }
 
 func (mw *MultiWork) Close() {
-	mw.Wg.Wait()
 	close(mw.Works)
+	mw.Wg.Wait()
+
 }
 
 func (mw *MultiWork) inc() {
@@ -92,15 +95,16 @@ func main() {
 			for {
 				select {
 				case <-ctx.Done():
+					return
 				default:
 					if err := ctx.Err(); err != nil {
+						fmt.Println("ctx.Err() = ", ctx.Err())
 						return
 					}
 					time.Sleep(time.Second * time.Duration(1+rand.Intn(5)))
 					fmt.Println(rand.Intn(1000))
 				}
 			}
-
 		})
 	}
 
@@ -109,7 +113,7 @@ func main() {
 
 	for i >= 0 {
 		fmt.Println("close gn = ", runtime.NumGoroutine())
-		fmt.Println("running = ", nm.running)
+		fmt.Println("close running = ", nm.running)
 		i--
 		time.Sleep(time.Second)
 	}
