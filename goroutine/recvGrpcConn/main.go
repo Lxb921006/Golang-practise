@@ -12,47 +12,38 @@ import (
 type Task func(ctx context.Context)
 
 type MultiWork struct {
-	Works   chan Task
-	Limit   chan struct{}
-	Wg      sync.WaitGroup
-	lock    sync.Mutex
-	running int
+	Works chan Task
+	Limit chan struct{}
+	Wg    sync.WaitGroup
+	lock  sync.Mutex
+	done  chan struct{}
 }
 
 func NewMultiWork(workers int) *MultiWork {
 	nm := &MultiWork{
 		Works: make(chan Task),
 		Limit: make(chan struct{}, workers),
+		done:  make(chan struct{}, 1),
 	}
 
 	go func() {
-
 		for task := range nm.Works {
-			fmt.Println("running = ", nm.running)
-			fmt.Println("gn = ", runtime.NumGoroutine())
-
 			nm.Limit <- struct{}{}
+
 			nm.Wg.Add(1)
-
 			go func(task Task) {
-				defer func() { nm.Wg.Done() }()
-				ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
-
+				ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 				defer cancel()
-
-				var done = make(chan struct{})
 				go func() {
-
-					task(ctx)
-					done <- struct{}{}
+					select {
+					case <-ctx.Done():
+						return
+					case <-nm.done:
+						return
+					}
 				}()
-
-				select {
-				case <-ctx.Done():
-					fmt.Println("timeout")
-				case <-done:
-				}
-
+				task(ctx)
+				nm.done <- struct{}{}
 				<-nm.Limit
 			}(task)
 
@@ -62,59 +53,42 @@ func NewMultiWork(workers int) *MultiWork {
 	return nm
 }
 
-func (mw *MultiWork) Add(task Task) {
-	mw.Works <- task
-}
-
-func (mw *MultiWork) Close() {
-	close(mw.Works)
-	mw.Wg.Wait()
-
-}
-
-func (mw *MultiWork) inc() {
-	mw.lock.Lock()
-	mw.running++
-	mw.lock.Unlock()
-}
-
-func (mw *MultiWork) dec() {
-	mw.lock.Lock()
-	mw.running--
-	mw.lock.Unlock()
-}
-
 func main() {
-
 	rand.Seed(time.Now().UnixNano())
 
 	nm := NewMultiWork(10)
 
-	for i := 1; i < 100; i++ {
-		nm.Add(func(ctx context.Context) {
-			for {
-				select {
-				case <-ctx.Done():
+	task := func(ctx context.Context) {
+		defer nm.Wg.Done()
+		for {
+			select {
+			case <-ctx.Done():
+				fmt.Println("task cancel")
+				return
+			default:
+				if err := ctx.Err(); err != nil {
 					return
-				default:
-					if err := ctx.Err(); err != nil {
-						fmt.Println("ctx.Err() = ", ctx.Err())
-						return
-					}
-					time.Sleep(time.Second * time.Duration(1+rand.Intn(5)))
-					fmt.Println(rand.Intn(1000))
 				}
+				time.Sleep(time.Second * time.Duration(rand.Intn(5)+1))
+				fmt.Println("task finished ", rand.Intn(1000))
+				return
 			}
-		})
+		}
+
 	}
 
-	nm.Close()
+	for range [100]struct{}{} {
+		nm.Works <- task
+	}
+
+	nm.Wg.Wait()
+	close(nm.Works)
+
 	i := 25
-
-	for i >= 0 {
-		fmt.Println("close gn = ", runtime.NumGoroutine())
-		fmt.Println("close running = ", nm.running)
+	for i > 0 {
+		fmt.Println("gn = ", runtime.NumGoroutine())
 		i--
-		time.Sleep(time.Second)
+		time.Sleep(time.Second * 1)
 	}
+
 }
