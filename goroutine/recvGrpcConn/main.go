@@ -9,21 +9,19 @@ import (
 	"time"
 )
 
-type Task func(ctx context.Context)
+type Task func()
 
 type MultiWork struct {
 	Works chan Task
 	Limit chan struct{}
 	Wg    sync.WaitGroup
 	lock  sync.Mutex
-	done  chan struct{}
 }
 
 func NewMultiWork(workers int) *MultiWork {
 	nm := &MultiWork{
 		Works: make(chan Task),
 		Limit: make(chan struct{}, workers),
-		done:  make(chan struct{}, 1),
 	}
 
 	go func() {
@@ -32,19 +30,24 @@ func NewMultiWork(workers int) *MultiWork {
 
 			nm.Wg.Add(1)
 			go func(task Task) {
-				ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+				ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 				defer cancel()
+
+				done := make(chan struct{})
 				go func() {
-					select {
-					case <-ctx.Done():
-						return
-					case <-nm.done:
-						return
-					}
+					task()
+					close(done)
 				}()
-				task(ctx)
-				nm.done <- struct{}{}
+
+				select {
+				case <-done:
+					// task completed successfully
+				case <-ctx.Done():
+					fmt.Println("task canceled:", ctx.Err())
+				}
+
 				<-nm.Limit
+
 			}(task)
 
 		}
@@ -58,23 +61,10 @@ func main() {
 
 	nm := NewMultiWork(10)
 
-	task := func(ctx context.Context) {
+	task := func() {
 		defer nm.Wg.Done()
-		for {
-			select {
-			case <-ctx.Done():
-				fmt.Println("task cancel")
-				return
-			default:
-				if err := ctx.Err(); err != nil {
-					return
-				}
-				time.Sleep(time.Second * time.Duration(rand.Intn(5)+1))
-				fmt.Println("task finished ", rand.Intn(1000))
-				return
-			}
-		}
-
+		time.Sleep(time.Second * time.Duration(rand.Intn(1000)+1))
+		fmt.Println("task finished ", rand.Intn(1000))
 	}
 
 	for range [100]struct{}{} {
