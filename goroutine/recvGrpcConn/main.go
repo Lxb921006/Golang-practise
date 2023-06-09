@@ -9,13 +9,12 @@ import (
 	"time"
 )
 
-type Task func()
+type Task func(ctx context.Context)
 
 type MultiWork struct {
 	Works chan Task
 	Limit chan struct{}
 	Wg    sync.WaitGroup
-	lock  sync.Mutex
 }
 
 func NewMultiWork(workers int) *MultiWork {
@@ -30,24 +29,13 @@ func NewMultiWork(workers int) *MultiWork {
 
 			nm.Wg.Add(1)
 			go func(task Task) {
-				ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+
+				ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 				defer cancel()
 
-				done := make(chan struct{})
-				go func() {
-					task()
-					close(done)
-				}()
-
-				select {
-				case <-done:
-					// task completed successfully
-				case <-ctx.Done():
-					fmt.Println("task canceled:", ctx.Err())
-				}
+				task(ctx)
 
 				<-nm.Limit
-
 			}(task)
 
 		}
@@ -61,10 +49,16 @@ func main() {
 
 	nm := NewMultiWork(10)
 
-	task := func() {
+	task := func(ctx context.Context) {
 		defer nm.Wg.Done()
-		time.Sleep(time.Second * time.Duration(rand.Intn(1000)+1))
-		fmt.Println("task finished ", rand.Intn(1000))
+		select {
+		case <-time.After(time.Hour):
+			fmt.Println("task finished ", rand.Intn(1000))
+			return
+		case <-ctx.Done():
+			fmt.Println("task timeout ")
+			return
+		}
 	}
 
 	for range [100]struct{}{} {
