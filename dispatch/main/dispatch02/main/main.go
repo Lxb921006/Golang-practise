@@ -103,6 +103,7 @@ func Dispatch04(v interface{}) {
 
 func Dispatch05(v interface{}) {
 	t1 := reflect.TypeOf(v)
+	fmt.Println("t1.Elem().Field(0).Name = ", t1.Elem().Field(0).Name)
 	v1 := reflect.ValueOf(v)
 
 	k1 := v1.Kind()
