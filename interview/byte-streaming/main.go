@@ -32,12 +32,7 @@ func main() {
 		return
 	}
 
-	defer func(wi *os.File) {
-		err := wi.Close()
-		if err != nil {
-			return
-		}
-	}(wi)
+	defer wi.Close()
 
 	for _, chunk := range chunks {
 		fmt.Println(string(chunk))

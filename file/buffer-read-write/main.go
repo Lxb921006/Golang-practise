@@ -5,11 +5,15 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 // 一般是一次读取4K或者8K的数据到缓冲区
 func main() {
-	var rb = make([]byte, 4096)
+
+	start := time.Now()
+
+	var rb = make([]byte, 8092)
 	file := "D:\\工作工具\\SQLServer2019-x64-CHS.iso"
 	path := "C:\\Users\\Administrator\\Desktop\\update"
 
@@ -18,14 +22,14 @@ func main() {
 		return
 	}
 
-	defer func(f *os.File) {
-		err := f.Close()
-		if err != nil {
-			return
-		}
-	}(f)
+	defer f.Close()
 
-	num := 0
+	output := filepath.Join(path, "test.iso")
+
+	fn, err := os.Create(output)
+	if err != nil {
+		return
+	}
 
 	for {
 		n, err := f.Read(rb)
@@ -37,21 +41,11 @@ func main() {
 			return
 		}
 
-		output := filepath.Join(path, fmt.Sprintf("split_%d", num))
-
-		fn, err := os.Create(output)
+		_, err = fn.Write(rb[:n])
 		if err != nil {
 			return
 		}
-
-		wn, err := fn.Write(rb[:n])
-		if err != nil {
-			return
-		}
-
-		num++
-		fmt.Println("already write byte >>>", wn)
 	}
 
-	fmt.Println("done")
+	fmt.Println("done, cost time = ", time.Since(start))
 }
