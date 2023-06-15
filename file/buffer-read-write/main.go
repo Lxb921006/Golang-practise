@@ -14,8 +14,8 @@ func main() {
 	start := time.Now()
 
 	var rb = make([]byte, 8092)
-	file := "D:\\工作工具\\SQLServer2019-x64-CHS.iso"
-	path := "C:\\Users\\Administrator\\Desktop\\update"
+	file := "E:\\googledownload\\goland-2023.1.1.exe"
+	path := "C:\\Users\\Administrator\\Desktop"
 
 	f, err := os.Open(file)
 	if err != nil {
@@ -24,7 +24,7 @@ func main() {
 
 	defer f.Close()
 
-	output := filepath.Join(path, "test.iso")
+	output := filepath.Join(path, "test.exe")
 
 	fn, err := os.Create(output)
 	if err != nil {
