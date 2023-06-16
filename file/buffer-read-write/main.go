@@ -14,7 +14,7 @@ func main() {
 	start := time.Now()
 
 	var rb = make([]byte, 8092)
-	file := "E:\\googledownload\\goland-2023.1.1.exe"
+	file := "D:\\工作工具\\SQLServer2019-x64-CHS.iso"
 	path := "C:\\Users\\Administrator\\Desktop"
 
 	f, err := os.Open(file)

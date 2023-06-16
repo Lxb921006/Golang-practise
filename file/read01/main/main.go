@@ -2,17 +2,15 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"log"
 	"os"
-	"strings"
 )
 
 func main() {
 	//文件操作
-	file := "C:/Users/Administrator/Desktop/trucomaster.com.pem"
-	wfile := "C:/Users/Administrator/Desktop/trucomaster.com-2.pem"
+	file := "C:\\Users\\Administrator\\Desktop\\OA.rar"
+	wfile := "C:\\Users\\Administrator\\Desktop\\update\\OA.rar"
 	f, err := os.OpenFile(file, os.O_RDONLY, 0777)
 	if err != nil {
 		log.Fatal(err)
@@ -34,16 +32,7 @@ func main() {
 	reader := bufio.NewReader(f)
 	writer := bufio.NewWriter(file2)
 
-	for {
-		str, err := reader.ReadString('\n') //读到一个换行符，就换行读+
-		if err == io.EOF {                  //io.EOF 表示文件末尾
-			break
-		}
-		if strings.Contains(str, "END") || strings.Contains(str, "BEGIN") {
-			writer.WriteString(str)
-			continue
-		}
-		writer.WriteString(str)
-		fmt.Print(str)
-	}
+	io.Copy(writer, reader)
+
+	log.Println("ok")
 }
