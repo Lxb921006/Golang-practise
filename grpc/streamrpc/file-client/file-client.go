@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	pb "github.com/Lxb921006/Golang-practise/grpc/streamrpc/streamrpc"
 	"google.golang.org/grpc"
@@ -27,7 +26,7 @@ func main() {
 		log.Fatal("err1 >>> ", err)
 	}
 
-	file := "C:\\Users\\Administrator\\Desktop\\OA.rar"
+	file := "E:\\googledownload\\python-3.9.10-amd64.exe"
 	f, err := os.Open(file)
 	if err != nil {
 		log.Fatal("err2 >>> ", err)
@@ -35,31 +34,25 @@ func main() {
 
 	defer f.Close()
 
-	reader := bufio.NewReader(f)
+	buffer := make([]byte, 8092)
+
+	defer stream.CloseSend()
 
 	for {
-		str, err := reader.ReadString('\n') //读到一个换行符，就换行读+
-		if err == io.EOF {                  //io.EOF 表示文件末尾
+		b, err := f.Read(buffer)
+		if err == io.EOF {
+			log.Println("read finished111 >>>", err)
 			break
 		}
 
-		if err := stream.Send(&pb.MyMessage{Msg: []byte(str), Name: filepath.Base(file)}); err != nil {
+		if b == 0 {
+			log.Println("read finished222 >>>", err)
+			break
+		}
+
+		if err := stream.Send(&pb.MyMessage{Msg: buffer[:b], Name: filepath.Base(file)}); err != nil {
 			log.Fatal("err3 >>> ", err)
 		}
 	}
-
-	//for {
-	//	resp, err := stream.Recv()
-	//	if err == io.EOF {
-	//		fmt.Println("rec ok")
-	//		break
-	//	}
-	//
-	//	if err != nil {
-	//		log.Fatal("err4 >>> ", err)
-	//	}
-	//
-	//	log.Println(string(resp.GetMsg()))
-	//}
 
 }

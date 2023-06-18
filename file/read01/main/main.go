@@ -9,8 +9,8 @@ import (
 
 func main() {
 	//文件操作
-	file := "C:\\Users\\Administrator\\Desktop\\OA.rar"
-	wfile := "C:\\Users\\Administrator\\Desktop\\update\\OA.rar"
+	file := "E:\\googledownload\\python-3.9.10-amd64.exe"
+	wfile := "C:\\Users\\Administrator\\Desktop\\python-3.9.10-amd64.exe"
 	f, err := os.OpenFile(file, os.O_RDONLY, 0777)
 	if err != nil {
 		log.Fatal(err)

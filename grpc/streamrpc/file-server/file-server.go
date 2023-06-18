@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	pb "github.com/Lxb921006/Golang-practise/grpc/streamrpc/streamrpc"
 	"google.golang.org/grpc"
@@ -14,10 +13,8 @@ import (
 )
 
 var (
-	once   sync.Once
-	writer *bufio.Writer
-	wf     *os.File
-	fn     string
+	once sync.Once
+	wf   *os.File
 )
 
 type server struct {
@@ -26,34 +23,25 @@ type server struct {
 
 func (s *server) MyMethod(stream pb.MyService_MyMethodServer) (err error) {
 	log.Println("rec data")
-	defer wf.Close()
 
 	for {
 		resp, err := stream.Recv()
 		if err == io.EOF {
-			log.Println("rec ok")
+			log.Println("rec finished")
 			break
 		}
 
-		if err != nil {
-			log.Fatal("err1 >>> ", err)
-		}
-
 		once.Do(func() {
-			fn = resp.GetName()
-			path := "C:\\Users\\Administrator\\Desktop\\update"
+			path := "C:\\Users\\Administrator\\Desktop"
 			file := filepath.Join(path, resp.GetName())
-			wf, err := os.Create(file)
+			wf, err = os.Create(file)
 			if err != nil {
 				log.Fatal("err3 >>> ", err)
 			}
-
-			writer = bufio.NewWriter(wf)
 		})
 
-		if _, err = writer.WriteString(string(resp.GetMsg())); err != nil {
-			log.Fatal("err2 >>> ", err)
-		}
+		wf.Write(resp.Msg)
+
 	}
 
 	log.Println("write ok")
@@ -61,6 +49,7 @@ func (s *server) MyMethod(stream pb.MyService_MyMethodServer) (err error) {
 	//if err = stream.Send(&pb.MyMessage{Msg: []byte("md5"), Name: fn}); err != nil {
 	//	return
 	//}
+	wf.Close()
 
 	return
 }
