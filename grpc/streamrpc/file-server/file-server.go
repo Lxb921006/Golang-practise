@@ -51,15 +51,16 @@ func (s *server) ProcessMsg() (err error) {
 			break
 		}
 
-		//if err != nil {
-		//	log.Println("err111 >>>", err)
-		//	return
-		//}
+		if err != nil {
+			log.Println("err111 >>>", err)
+			return err
+		}
 
 		path := "C:\\Users\\Administrator\\Desktop"
 		file = filepath.Join(path, resp.GetName())
 		_, err = os.Stat(file)
 		if err != nil {
+			//log.Println(file)
 			wf, err = os.Create(file)
 			if err != nil {
 				errs = errors.New(err.Error())
@@ -71,7 +72,9 @@ func (s *server) ProcessMsg() (err error) {
 			return errs
 		}
 
-		wf.Write(resp.Msg)
+		if wf != nil {
+			wf.Write(resp.Msg)
+		}
 
 	}
 

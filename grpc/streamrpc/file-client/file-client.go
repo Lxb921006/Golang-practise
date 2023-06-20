@@ -17,7 +17,9 @@ var (
 )
 
 func main() {
-	files := []string{"D:\\工作工具\\天锐绿盾终端.exe", "D:\\工作工具\\TortoiseSVN64.msi"}
+	files := []string{"E:\\googledownload\\haozip_v6.4.0.11152_compliant.exe",
+		"E:\\googledownload\\python-3.9.10-amd64.exe",
+	}
 	for _, file := range files {
 		wg.Add(1)
 		go func(file string) {
@@ -43,6 +45,7 @@ func Send(file string) (err error) {
 	c := pb.NewMyServiceClient(conn)
 
 	stream, err := c.MyMethod(context.Background())
+
 	if err != nil {
 		log.Println("err222 >>> ", err)
 		return
