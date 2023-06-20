@@ -12,12 +12,7 @@ func main() {
 		log.Fatalf("error opening file: %v", err)
 	}
 
-	defer func(f *os.File) {
-		err := f.Close()
-		if err != nil {
-
-		}
-	}(f)
+	defer f.Close()
 
 	wrt := io.MultiWriter(os.Stdout, f)
 	log.SetOutput(wrt)
@@ -29,5 +24,5 @@ func main() {
 		return
 	}
 
-	log.Println("size >>>,", fi.Size())
+	log.Println("size >>>,", fi.Size(), fi.Name())
 }

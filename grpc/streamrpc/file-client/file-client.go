@@ -9,12 +9,33 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sync"
+)
+
+var (
+	wg sync.WaitGroup
 )
 
 func main() {
+	files := []string{"D:\\工作工具\\天锐绿盾终端.exe", "D:\\工作工具\\TortoiseSVN64.msi"}
+	for _, file := range files {
+		wg.Add(1)
+		go func(file string) {
+			if err := Send(file); err != nil {
+				log.Println("send err >>> ", err)
+			}
+		}(file)
+	}
+	wg.Wait()
+}
+
+func Send(file string) (err error) {
+	defer wg.Done()
+
 	conn, err := grpc.Dial(":12306", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		log.Println("err111 >>> ", err)
+		return
 	}
 
 	defer conn.Close()
@@ -23,20 +44,19 @@ func main() {
 
 	stream, err := c.MyMethod(context.Background())
 	if err != nil {
-		log.Fatal("err1 >>> ", err)
+		log.Println("err222 >>> ", err)
+		return
 	}
-
-	file := "E:\\googledownload\\python-3.9.10-amd64.exe"
-	f, err := os.Open(file)
-	if err != nil {
-		log.Fatal("err2 >>> ", err)
-	}
-
-	defer f.Close()
 
 	buffer := make([]byte, 8092)
 
-	defer stream.CloseSend()
+	f, err := os.Open(file)
+	if err != nil {
+		log.Println("err333 >>> ", err)
+		return
+	}
+
+	defer f.Close()
 
 	for {
 		b, err := f.Read(buffer)
@@ -50,9 +70,28 @@ func main() {
 			break
 		}
 
-		if err := stream.Send(&pb.MyMessage{Msg: buffer[:b], Name: filepath.Base(file)}); err != nil {
-			log.Fatal("err3 >>> ", err)
+		if err = stream.Send(&pb.MyMessage{Msg: buffer[:b], Name: filepath.Base(file)}); err != nil {
+			log.Println("err444 >>> ", err)
+			return err
 		}
 	}
 
+	stream.CloseSend()
+
+	for {
+		resp, err := stream.Recv()
+		if err == io.EOF {
+			log.Println("rec ok >>> ", err)
+			break
+		}
+
+		if err != nil {
+			log.Println("err555 >>> ", err)
+			return err
+		}
+
+		log.Println("file md5 >>> ", resp.GetName())
+	}
+
+	return
 }
