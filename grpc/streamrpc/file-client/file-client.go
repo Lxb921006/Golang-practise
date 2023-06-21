@@ -17,9 +17,11 @@ var (
 )
 
 func main() {
-	files := []string{"E:\\googledownload\\haozip_v6.4.0.11152_compliant.exe",
-		"E:\\googledownload\\python-3.9.10-amd64.exe",
+	files := []string{"D:\\工作工具\\TortoiseSVN64.msi",
+		"D:\\工作工具\\天锐绿盾终端.exe",
+		"D:\\工作工具\\SQLServer2019-x64-CHS.iso",
 	}
+
 	for _, file := range files {
 		wg.Add(1)
 		go func(file string) {
@@ -28,6 +30,7 @@ func main() {
 			}
 		}(file)
 	}
+
 	wg.Wait()
 }
 
@@ -75,7 +78,8 @@ func Send(file string) (err error) {
 
 		if err = stream.Send(&pb.MyMessage{Msg: buffer[:b], Name: filepath.Base(file)}); err != nil {
 			log.Println("err444 >>> ", err)
-			return err
+			break
+			//return err
 		}
 	}
 

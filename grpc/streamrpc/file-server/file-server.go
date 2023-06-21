@@ -3,7 +3,6 @@ package main
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	pb "github.com/Lxb921006/Golang-practise/grpc/streamrpc/streamrpc"
 	"google.golang.org/grpc"
@@ -16,33 +15,24 @@ import (
 
 type server struct {
 	pb.UnimplementedMyServiceServer
-	work chan pb.MyService_MyMethodServer
-	done chan struct{}
 }
 
 func (s *server) MyMethod(stream pb.MyService_MyMethodServer) (err error) {
 	log.Println("rec data")
 
-	go func() {
-		if err = s.ProcessMsg(); err != nil {
-			log.Println(err)
-		}
-	}()
-
-	s.work <- stream
-
-	<-s.done
+	if err = s.ProcessMsg(stream); err != nil {
+		log.Println(err)
+	}
 
 	return
 }
 
-func (s *server) ProcessMsg() (err error) {
+func (s *server) ProcessMsg(stream pb.MyService_MyMethodServer) (err error) {
 	log.Println("process msg")
-	stream := <-s.work
+	//stream := <-s.work
 
-	var errs error
-	var wf *os.File
 	var file string
+	var chunks [][]byte
 
 	for {
 		resp, err := stream.Recv()
@@ -51,34 +41,29 @@ func (s *server) ProcessMsg() (err error) {
 			break
 		}
 
-		if err != nil {
-			log.Println("err111 >>>", err)
-			return err
+		if file == "" {
+			path := "C:\\Users\\Administrator\\Desktop"
+			file = filepath.Join(path, resp.GetName())
 		}
 
-		path := "C:\\Users\\Administrator\\Desktop"
-		file = filepath.Join(path, resp.GetName())
-		_, err = os.Stat(file)
-		if err != nil {
-			//log.Println(file)
-			wf, err = os.Create(file)
-			if err != nil {
-				errs = errors.New(err.Error())
-			}
-		}
-
-		if errs != nil {
-			log.Println("create file err ", errs)
-			return errs
-		}
-
-		if wf != nil {
-			wf.Write(resp.Msg)
-		}
-
+		chunks = append(chunks, resp.Msg)
 	}
 
-	wf.Close()
+	_, err = os.Stat(file)
+	if err != nil {
+		fw, err := os.Create(file)
+		if err != nil {
+			return err
+		}
+		defer fw.Close()
+
+		for _, chunk := range chunks {
+			_, err := fw.WriteString(string(chunk))
+			if err != nil {
+				return err
+			}
+		}
+	}
 
 	log.Println(file, " recv ok")
 
@@ -89,7 +74,7 @@ func (s *server) ProcessMsg() (err error) {
 		return
 	}
 
-	s.done <- struct{}{}
+	//s.done <- struct{}{}
 
 	return
 }
@@ -119,7 +104,7 @@ func main() {
 	}
 
 	s := grpc.NewServer()
-	pb.RegisterMyServiceServer(s, &server{work: make(chan pb.MyService_MyMethodServer), done: make(chan struct{})})
+	pb.RegisterMyServiceServer(s, &server{})
 
 	log.Printf("server listening at %v", lis.Addr())
 
