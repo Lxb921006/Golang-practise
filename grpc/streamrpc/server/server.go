@@ -44,16 +44,12 @@ func (s *server) MyMethod(stream pb.MyService_MyMethodServer) (err error) {
 }
 
 func (s *server) ProcessMsg(stream pb.MyService_MyMethodServer) (err error) {
-	log.Println("process msg")
-	//stream := <-s.work
-
 	var file string
 	var chunks [][]byte
 
 	for {
 		resp, err := stream.Recv()
 		if err == io.EOF {
-			log.Println("rec finished")
 			break
 		}
 
@@ -81,16 +77,13 @@ func (s *server) ProcessMsg(stream pb.MyService_MyMethodServer) (err error) {
 		}
 	}
 
-	log.Println(file, " recv ok")
+	log.Println(file, " recv ok, returning to md5 soon")
 
 	m, _ := s.FileMd5(file)
 
 	if err = stream.Send(&pb.MyMessage{Msg: []byte("md5"), Name: m}); err != nil {
-		log.Println("send err ", err)
 		return
 	}
-
-	//s.done <- struct{}{}
 
 	return
 }

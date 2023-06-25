@@ -39,7 +39,6 @@ func Send(file string) (err error) {
 
 	conn, err := grpc.Dial(":12306", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Println("err111 >>> ", err)
 		return
 	}
 
@@ -50,7 +49,6 @@ func Send(file string) (err error) {
 	stream, err := c.MyMethod(context.Background())
 
 	if err != nil {
-		log.Println("err222 >>> ", err)
 		return
 	}
 
@@ -58,7 +56,6 @@ func Send(file string) (err error) {
 
 	f, err := os.Open(file)
 	if err != nil {
-		log.Println("err333 >>> ", err)
 		return
 	}
 
@@ -67,19 +64,15 @@ func Send(file string) (err error) {
 	for {
 		b, err := f.Read(buffer)
 		if err == io.EOF {
-			log.Println("read finished111 >>>", err)
 			break
 		}
 
 		if b == 0 {
-			log.Println("read finished222 >>>", err)
 			break
 		}
 
 		if err = stream.Send(&pb.MyMessage{Msg: buffer[:b], Name: filepath.Base(file)}); err != nil {
-			log.Println("err444 >>> ", err)
-			break
-			//return err
+			return err
 		}
 	}
 
@@ -88,12 +81,10 @@ func Send(file string) (err error) {
 	for {
 		resp, err := stream.Recv()
 		if err == io.EOF {
-			log.Println("rec ok >>> ", err)
 			break
 		}
 
 		if err != nil {
-			log.Println("err555 >>> ", err)
 			return err
 		}
 
