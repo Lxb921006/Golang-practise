@@ -81,7 +81,7 @@ func (s *server) ProcessMsg(stream pb.MyService_MyMethodServer) (err error) {
 
 	m, _ := s.FileMd5(file)
 
-	if err = stream.Send(&pb.MyMessage{Msg: []byte("md5"), Name: m}); err != nil {
+	if err = stream.Send(&pb.MyMessage{Msg: []byte("md5"), Name: m + "-" + filepath.Base(file)}); err != nil {
 		return
 	}
 

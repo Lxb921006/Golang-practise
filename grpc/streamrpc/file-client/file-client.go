@@ -13,7 +13,8 @@ import (
 )
 
 var (
-	wg sync.WaitGroup
+	wg      sync.WaitGroup
+	resChan = make(chan string)
 )
 
 func main() {
@@ -31,7 +32,15 @@ func main() {
 		}(file)
 	}
 
-	wg.Wait()
+	go func() {
+		wg.Wait()
+		close(resChan)
+	}()
+
+	for data := range resChan {
+		log.Println(data)
+	}
+
 }
 
 func Send(file string) (err error) {
@@ -89,6 +98,8 @@ func Send(file string) (err error) {
 		}
 
 		log.Println("file md5 >>> ", resp.GetName())
+
+		resChan <- resp.GetName()
 	}
 
 	return
