@@ -35,15 +35,20 @@ func (s *server) SayHelloWorld(req *pb.StreamRequest, stream pb.StreamRpcService
 
 func (s *server) MyMethod(stream pb.MyService_MyMethodServer) (err error) {
 	log.Println("rec data")
+	var done = make(chan struct{})
 
-	if err = s.ProcessMsg(stream); err != nil {
-		log.Println(err)
-	}
+	go func() {
+		if err = s.ProcessMsg(stream, done); err != nil {
+			log.Println(err)
+		}
+	}()
+
+	<-done
 
 	return
 }
 
-func (s *server) ProcessMsg(stream pb.MyService_MyMethodServer) (err error) {
+func (s *server) ProcessMsg(stream pb.MyService_MyMethodServer, done chan struct{}) (err error) {
 	var file string
 	var chunks [][]byte
 
@@ -84,6 +89,8 @@ func (s *server) ProcessMsg(stream pb.MyService_MyMethodServer) (err error) {
 	if err = stream.Send(&pb.MyMessage{Msg: []byte("md5"), Name: m + "-" + filepath.Base(file)}); err != nil {
 		return
 	}
+
+	done <- struct{}{}
 
 	return
 }
