@@ -8,14 +8,16 @@ import (
 )
 
 func main() {
-	conn, err := net.Dial("tcp", "127.0.0.1:8080")
+	conn, err := net.Dial("tcp", "127.0.0.1:8088")
 	if err != nil {
 		panic(err)
 	}
 	defer conn.Close()
 
-	for i := 0; i < 10; i++ {
-		msg := "Hello, server lxb!"
+	name := []string{"lxb", "lqm", "lyy", "llt", "lch"}
+
+	for _, v := range name {
+		msg := fmt.Sprintf("Hello, server %s!", v)
 		err = sendMessage(conn, msg)
 		if err != nil {
 			fmt.Println("Error sending message:", err)

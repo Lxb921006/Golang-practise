@@ -37,13 +37,9 @@ func (s *server) MyMethod(stream pb.MyService_MyMethodServer) (err error) {
 	log.Println("rec data")
 	var done = make(chan struct{})
 
-	go func() {
-		if err = s.ProcessMsg(stream, done); err != nil {
-			log.Println(err)
-		}
-	}()
-
-	<-done
+	if err = s.ProcessMsg(stream, done); err != nil {
+		log.Println(err)
+	}
 
 	return
 }
@@ -90,7 +86,7 @@ func (s *server) ProcessMsg(stream pb.MyService_MyMethodServer, done chan struct
 		return
 	}
 
-	done <- struct{}{}
+	//done <- struct{}{}
 
 	return
 }
@@ -118,8 +114,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-
 	s := grpc.NewServer()
+
 	pb.RegisterStreamRpcServiceServer(s, &server{})
 	pb.RegisterMyServiceServer(s, &server{})
 
@@ -128,4 +124,5 @@ func main() {
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
+
 }

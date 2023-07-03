@@ -8,13 +8,13 @@ import (
 )
 
 func main() {
+	log.Println("server listening on 8088...")
+
 	listener, err := net.Listen("tcp", ":8088")
 	if err != nil {
 		panic(err)
 	}
 	defer listener.Close()
-
-	log.Println("server listening on 8080...")
 
 	for {
 		conn, err := listener.Accept()
