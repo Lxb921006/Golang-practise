@@ -11,6 +11,8 @@ import (
 )
 
 func main() {
+
+	context.WithCancel(context.Background())
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
