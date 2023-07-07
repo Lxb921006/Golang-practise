@@ -26,6 +26,8 @@ func main() {
 		log.Fatalln(flag.ErrHelp)
 	}
 
+	recover()
+
 	dsn := fmt.Sprintf("sqlserver://%s:%s@%s:%d?encrypt=disable&timeout=5", *user, *password, *host, *port)
 
 	db, err := sql.Open("sqlserver", dsn)
