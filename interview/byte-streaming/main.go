@@ -22,7 +22,7 @@ func main() {
 	//	chunks = append(chunks, b[:])
 	//}
 	//
-	chunks := chunkSlice(b, 5)
+	chunks := chunkSlice(b, 1024)
 
 	fmt.Println(chunks)
 

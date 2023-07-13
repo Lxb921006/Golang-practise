@@ -13,8 +13,8 @@ func main() {
 	start := time.Now()
 	src := "D:\\工作工具\\SQLServer2019-x64-CHS.iso"
 	dst := "C:\\Users\\Administrator\\Desktop\\update\\SQLServer2019-x64-CHS.iso"
-	bufferWrite(src, dst)
-	//normalWrite(src, dst)
+	//bufferWrite(src, dst)
+	normalWrite(src, dst)
 
 	fmt.Println("done >>>", time.Since(start))
 }
