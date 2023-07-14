@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 
-//方法接收器的细节，问题
+//方法接收器的值类型与指针类型的细节，问题
 
 type Kind interface {
 	Fly()
