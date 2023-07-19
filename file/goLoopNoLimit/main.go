@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sync"
 	"time"
 )
@@ -15,14 +16,17 @@ var (
 )
 
 func main() {
-	limitCh := make(chan struct{}, 20)
 	start := time.Now()
-	root := "C:/Users/Administrator/Desktop/log"
+	limitCh := make(chan struct{}, 20)
+	root := "C:\\Windows"
 
 	go func() {
 		for {
 			select {
-			case <-totalCh:
+			case _, ok := <-totalCh:
+				if !ok {
+					return
+				}
 				total++
 			default:
 			}
@@ -33,7 +37,17 @@ func main() {
 
 	wg.Wait()
 
+	close(totalCh)
+
 	fmt.Printf("total = %d, time = %v/n", total, time.Since(start))
+
+	var i = 10
+
+	for i > 0 {
+		fmt.Println(runtime.NumGoroutine())
+		i--
+		time.Sleep(time.Second)
+	}
 
 }
 
@@ -56,7 +70,7 @@ func Loop(root string, limit chan struct{}, f bool) {
 	}
 
 	if !f {
-		wg.Done()
 		<-limit
+		wg.Done()
 	}
 }
