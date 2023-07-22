@@ -34,8 +34,6 @@ func main() {
 
 	for {
 		n, err1 := nr.Read(rb)
-		fmt.Println(len(rb))
-		fmt.Println(n)
 		if err1 == io.EOF {
 			break
 		}
@@ -45,7 +43,6 @@ func main() {
 		}
 
 		nw.Write(rb[:n])
-		time.Sleep(time.Second)
 	}
 
 	if err = nw.Flush(); err != nil {

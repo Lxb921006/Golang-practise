@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"time"
 )
 
@@ -13,9 +12,9 @@ func main() {
 
 	start := time.Now()
 
-	var rb = make([]byte, 8092)
+	var rb = make([]byte, 4096)
 	file := "D:\\工作工具\\SQLServer2019-x64-CHS.iso"
-	path := "C:\\Users\\Administrator\\Desktop"
+	path := "C:\\Users\\Administrator\\Desktop\\SQLServer2019-x64-CHS.iso"
 
 	f, err := os.Open(file)
 	if err != nil {
@@ -24,20 +23,18 @@ func main() {
 
 	defer f.Close()
 
-	output := filepath.Join(path, "test.exe")
-
-	fn, err := os.Create(output)
+	fn, err := os.Create(path)
 	if err != nil {
 		return
 	}
 
 	for {
-		n, err := f.Read(rb)
-		if err == io.EOF {
+		n, err1 := f.Read(rb)
+		if err1 == io.EOF {
 			break
 		}
 
-		if err != nil {
+		if err1 != nil {
 			return
 		}
 
@@ -47,5 +44,5 @@ func main() {
 		}
 	}
 
-	fmt.Println("done, cost time = ", time.Since(start))
+	fmt.Println("耗时 = ", time.Since(start))
 }
