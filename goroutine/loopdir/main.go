@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"sync"
 	"time"
 )
@@ -39,16 +38,7 @@ func main() {
 
 	close(totalCh)
 
-	fmt.Printf("total = %d, time = %v/n", total, time.Since(start))
-
-	var i = 10
-
-	for i > 0 {
-		fmt.Println(runtime.NumGoroutine())
-		i--
-		time.Sleep(time.Second)
-	}
-
+	fmt.Printf("total = %d, time = %v\n", total, time.Since(start))
 }
 
 func Loop(root string, limit chan struct{}, f bool) {

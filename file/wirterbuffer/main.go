@@ -29,11 +29,12 @@ func (w *WriteBuffer) writeByte(data []byte) {
 		w.flush()
 		w.fileHandle.Write(data) // 这里会进行io操作
 	} else {
+		// 当接近设定的缓存容量就要落盘, 并不是一定要准确到底设定的缓存值才落盘, 要考虑边界问题
 		if len(w.cache[:w.index])+w.index > len(w.cache) {
 			w.flush()
 		}
-		copy(w.cache[w.index:], data)
-		w.index += len(data)
+		copy(w.cache[w.index:], data) // 如果没接近设定值就继续往后追加数据,
+		w.index += len(data)          // 记录追加后的cache的容量
 	}
 }
 
@@ -41,6 +42,7 @@ func (w *WriteBuffer) writeString(data string) {
 	w.writeByte([]byte(data))
 }
 
+// 每次落盘后都要清空缓冲
 func (w *WriteBuffer) flush() {
 	w.fileHandle.Write(w.cache[:w.index])
 	w.index = 0
@@ -54,15 +56,16 @@ func commonWrite(fs *os.File) {
 
 func main() {
 	start := time.Now()
-	fs, _ := os.Create("C:/Users/Administrator/Desktop/b.txt")
+	fs, _ := os.Create("C:/Users/Administrator/Desktop/a.txt")
 
-	nw := NewWriteBuffer(fs, 4096)
-	defer nw.flush() // 把内存里残留的写进去
+	//nw := NewWriteBuffer(fs, 4096)
+	//defer nw.flush() // 把内存里残留的写进去
+	//
+	//for i := 0; i < 10000; i++ {
+	//	nw.writeString(content)
+	//}
 
-	for i := 0; i < 10000; i++ {
-		nw.writeString(content)
-	}
-	//commonWrite(fs)
+	commonWrite(fs)
 
 	fmt.Println("cost time >>>", time.Since(start))
 }
