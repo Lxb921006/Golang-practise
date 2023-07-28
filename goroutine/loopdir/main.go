@@ -53,12 +53,14 @@ func Loop(root string, limit chan struct{}, f bool) {
 					wg.Add(1)
 					go Loop(filepath.Join(root, file.Name()), limit, false)
 				default:
+					// 在limit阻塞期间, 让Loop自己也可以继续遍历出文件
 					Loop(filepath.Join(root, file.Name()), limit, true)
 				}
 			}
 		}
 	}
 
+	// 遍历完目录要给让limit给出位置给新的goroutine用,并标记当前goroutine已完成
 	if !f {
 		<-limit
 		wg.Done()
