@@ -25,9 +25,9 @@ func NewWriteBuffer(fh *os.File, size int) *WriteBuffer {
 }
 
 func (w *WriteBuffer) writeByte(data []byte) {
-	if len(data) >= len(w.cache) {
+	if len(data) >= len(w.cache) { // 如果写入的数据大于设定的缓存容量就直接落盘
 		w.flush()
-		w.fileHandle.Write(data) // 这里会进行io操作
+		w.fileHandle.Write(data)
 	} else {
 		// 当接近设定的缓存容量就要落盘, 并不是一定要准确到底设定的缓存值才落盘, 要考虑边界问题
 		if len(w.cache[:w.index])+w.index > len(w.cache) {
@@ -42,7 +42,7 @@ func (w *WriteBuffer) writeString(data string) {
 	w.writeByte([]byte(data))
 }
 
-// 每次落盘后都要清空缓冲
+// 每次落盘后都要清空缓存
 func (w *WriteBuffer) flush() {
 	w.fileHandle.Write(w.cache[:w.index])
 	w.index = 0
