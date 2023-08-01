@@ -1,12 +1,15 @@
 package main
 
+import "fmt"
+
 func main() {
-	// s := [7]int{2, 3, 10, -5, 4, 29, 79}
-	// insertsort(&s)
+	s := [7]int{2, 3, 10, -5, 4, 29, 79}
+	insertsort(&s)
+	fmt.Println(s)
 }
 
-//插入排序法
-func insertsort(arr *[80000]int) {
+// 插入排序法
+func insertsort(arr *[7]int) {
 	for i := 1; i < len(arr); i++ { //这里len(arr)不需要-1,因为有可能最后一个是最大的,减1最后一个不会去跟有序数组进行比较
 		insertVal := arr[i] //这里会保存无序数组里边元素
 		insertIndex := i - 1
