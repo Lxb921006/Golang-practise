@@ -1,9 +1,11 @@
 package main
 
+import "fmt"
+
 func main() {
-	// s := [5]int{2, 2, 10, 5, 4}
-	// SelectSort2(&s)
-	// fmt.Println("s = ", s)
+	s := [7]int{2, 3, 10, -5, 4, 29, 79}
+	selectSort(&s)
+	fmt.Println("s = ", s)
 }
 
 //普通的排序
@@ -17,8 +19,8 @@ func main() {
 // 	}
 // }
 
-// //选择排序法
-func SelectSort2(a *[80000]int) {
+// 选择排序法
+func selectSort(a *[7]int) {
 	//推导
 	//假设第1个元素是最大的
 	// max := a[0]
