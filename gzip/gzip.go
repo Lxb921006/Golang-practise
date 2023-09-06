@@ -1,57 +1,76 @@
 package main
 
 import (
+	"archive/tar"
 	"compress/gzip"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 )
 
 func main() {
-	dir := "D:\\project\\gin\\src\\github.com\\Lxb921006\\chatai\\chat"
-	gzName := filepath.Base(dir) + ".gz"
-	gzPath := filepath.Join("C:\\Users\\Administrator\\Desktop", gzName)
+	sourceDir := "/path/to/source_directory"    // 源目录路径
+	targetFile := "compressed_directory.tar.gz" // 压缩后的目标文件名
 
-	fs, err := os.Create(gzPath)
+	// 创建目标文件
+	target, err := os.Create(targetFile)
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Println("无法创建目标文件:", err)
+		return
 	}
+	defer target.Close()
 
-	defer fs.Close()
+	// 创建 gzip.Writer
+	gzWriter := gzip.NewWriter(target)
+	defer gzWriter.Close()
 
-	gz := gzip.NewWriter(fs)
+	// 创建 tar.Writer
+	tarWriter := tar.NewWriter(gzWriter)
+	defer tarWriter.Close()
 
-	defer gz.Close()
-
-	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+	// 遍历源目录并压缩其中的文件和子目录
+	err = filepath.Walk(sourceDir, func(filePath string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 
-		if info.IsDir() {
-			return nil
-		}
-
-		// 打开要压缩的文件
-		file, err := os.Open(path)
+		// 创建 tar 文件头
+		header, err := tar.FileInfoHeader(info, info.Name())
 		if err != nil {
 			return err
 		}
-		defer file.Close()
 
-		// 复制文件内容到 tar.Writer
-		_, err = io.Copy(gz, file)
-		if err != nil {
+		// 修改文件头中的名称，以相对路径存储
+		relPath, _ := filepath.Rel(sourceDir, filePath)
+		header.Name = relPath
+
+		// 写入 tar 文件头
+		if err = tarWriter.WriteHeader(header); err != nil {
 			return err
+		}
+
+		// 如果是文件，复制文件内容到 tar.Writer
+		if !info.IsDir() {
+			file, err := os.Open(filePath)
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+
+			_, err = io.Copy(tarWriter, file)
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil
 	})
 
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("压缩目录时出错:", err)
+		return
 	}
 
+	fmt.Println("目录已成功压缩到", targetFile)
 }
