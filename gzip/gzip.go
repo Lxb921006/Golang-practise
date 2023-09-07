@@ -10,8 +10,9 @@ import (
 )
 
 func main() {
-	sourceDir := "/path/to/source_directory"    // 源目录路径
-	targetFile := "compressed_directory.tar.gz" // 压缩后的目标文件名
+	sourceDir := "C:\\Users\\Administrator\\Desktop\\ccc" // 源目录路径
+	gzName := filepath.Base(sourceDir) + ".tar.gz"
+	targetFile := filepath.Join("C:\\Users\\Administrator\\Desktop", gzName) // 压缩后的目标文件名
 
 	// 创建目标文件
 	target, err := os.Create(targetFile)
