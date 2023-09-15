@@ -8,12 +8,12 @@ import (
 
 func main() {
 
-	dir := "D:\\project\\gin\\src\\github.com\\Lxb921006\\chatai\\chat\\.git"
+	dir := "C:\\Users\\Administrator\\Desktop\\update"
 
 	err := filepath.Walk(dir, func(path string, info fs.FileInfo, err error) error {
 		if !info.IsDir() {
 			//fileName := filepath.Join(path, info.Name())
-			fmt.Println(path, info.Name())
+			fmt.Printf("full path >>>, %s, filename >>> %s\n", path, info.Name())
 		}
 
 		return nil

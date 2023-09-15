@@ -32,25 +32,33 @@ func main() {
 
 	db, err := sql.Open("sqlserver", dsn)
 	if err != nil {
-		log.Fatal("err1 >>>", err)
+		log.Fatal("Failed to connect to database >>>", err)
 	}
 
 	defer db.Close()
 
-	b, err := os.ReadFile(*sqlFile)
-	if err != nil {
-		log.Fatal("err2 >>>", err)
+	fo, err := os.Stat(*sqlFile)
+	if err == nil {
+		if !fo.IsDir() {
+			b, err := os.ReadFile(*sqlFile)
+			if err != nil {
+				log.Fatalln("Can only execute SQL files >>>", err)
+			}
+
+			r, err := db.Exec(string(b))
+			if err != nil {
+				log.Fatalln("Failed to execute SQL >>>", err)
+			}
+
+			rs, err := r.RowsAffected()
+			if err != nil {
+				log.Fatalln("Failed to obtain execution results >>>", err)
+			}
+
+			log.Printf("res %d", rs)
+		}
+	} else {
+		log.Fatalln("Can only execute SQL files >>>", err)
 	}
 
-	r, err := db.Exec(string(b))
-	if err != nil {
-		log.Fatal("err3 >>>", err)
-	}
-
-	rs, err := r.RowsAffected()
-	if err != nil {
-		log.Fatal("err4 >>>", err)
-	}
-
-	log.Printf("RowsAffected %d", rs)
 }

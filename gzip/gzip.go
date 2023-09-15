@@ -13,10 +13,14 @@ func main() {
 	sourceDir := "C:\\Users\\Administrator\\Desktop\\update" // 源目录路径
 	gzName := filepath.Base(sourceDir) + ".tar.gz"
 	targetFile := filepath.Join("C:\\Users\\Administrator\\Desktop", gzName) // 压缩后的目标文件名
-	extractDir := "C:\\Users\\Administrator\\Desktop\\test"
-	//gzipFile(sourceDir, targetFile)
+	//extractDir := "C:\\Users\\Administrator\\Desktop\\test"
+	err := gzipFile(sourceDir, targetFile)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
-	unGzipFile(targetFile, extractDir)
+	//unGzipFile(targetFile, extractDir)
 
 }
 
