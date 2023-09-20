@@ -12,7 +12,7 @@ import (
 type Zip struct {
 	Src     string `json:"src"`
 	Dst     string `json:"dst"`
-	ZipName string `json:"zip-name"`
+	ZipName string `json:"-"`
 }
 
 func (z *Zip) Check() (err error) {
@@ -26,15 +26,14 @@ func (z *Zip) Check() (err error) {
 		return
 	}
 
-	z.ZipName = filepath.Join(z.Src, filepath.Base(z.Src)+".zip")
-
 	return
 }
 
 func (z *Zip) ZipFile() (err error) {
+	z.ZipName = filepath.Join(z.Dst, filepath.Base(z.Src)+".zip")
 	fc, err := os.Create(z.ZipName)
 	if err != nil {
-		return
+		return err
 	}
 
 	defer fc.Close()
@@ -83,11 +82,45 @@ func (z *Zip) ZipFile() (err error) {
 }
 
 func (z *Zip) UnZipFile() (err error) {
+	zipReader, err := zip.OpenReader(z.Src)
+	if err != nil {
+		return err
+	}
+
+	for _, file := range zipReader.File {
+		if file.FileInfo().IsDir() {
+			full := filepath.Join(z.Dst, file.Name)
+			err = os.MkdirAll(full, 0775)
+			if err != nil {
+				return
+			}
+		} else {
+			fullFile := filepath.Join(z.Dst, file.Name)
+			fc, err := os.Create(fullFile)
+			if err != nil {
+				return err
+			}
+			defer fc.Close()
+
+			rc, err := file.Open()
+			if err != nil {
+				return err
+			}
+			defer rc.Close()
+
+			_, err = io.Copy(fc, rc)
+			if err != nil {
+				return err
+			}
+		}
+
+	}
+
 	return
 }
 
-func NewZip(src, dst, zipName string) *Zip {
-	z := &Zip{src, dst, zipName}
+func NewZip(src, dst string) *Zip {
+	z := &Zip{Src: src, Dst: dst}
 
 	err := z.Check()
 	if err != nil {

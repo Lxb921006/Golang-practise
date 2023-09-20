@@ -3,7 +3,6 @@ package newHttp
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -15,13 +14,16 @@ type HttpRe struct {
 	Url     string                 `json:"url"`
 	Params  map[string]interface{} `json:"params"`
 	Headers map[string]interface{} `json:"headers"`
+	Byte    []byte                 `json:"byte"`
+	Fd      string                 `json:"fd"`
 	Timeout int                    `json:"timeout"`
+	Stream  bool                   `json:"stream"`
 	client  *http.Client
 	hr      *http.Request
 	resp    *http.Response
 }
 
-func (nh *HttpRe) POST(client *http.Client) (data []byte, err error) {
+func (nh *HttpRe) POST(client *http.Client) (body io.ReadCloser, err error) {
 	fd, err := nh.FormatParams()
 	if err != nil {
 		return
@@ -29,17 +31,15 @@ func (nh *HttpRe) POST(client *http.Client) (data []byte, err error) {
 
 	nh.client = client
 
-	data, err = nh.NewRequest("POST", fd.(io.Reader))
+	body, err = nh.NewRequest("POST", fd.(io.Reader))
 	if err != nil {
 		return
 	}
-
-	defer nh.resp.Body.Close()
 
 	return
 }
 
-func (nh *HttpRe) GET(client *http.Client) (data []byte, err error) {
+func (nh *HttpRe) GET(client *http.Client) (body io.ReadCloser, err error) {
 	fd, err := nh.FormatParams()
 	if err != nil {
 		return
@@ -47,13 +47,11 @@ func (nh *HttpRe) GET(client *http.Client) (data []byte, err error) {
 
 	nh.client = client
 
-	data, err = nh.NewRequest("GET", fd.(io.Reader))
+	body, err = nh.NewRequest("GET", fd.(io.Reader))
 
 	if err != nil {
 		return
 	}
-
-	defer nh.resp.Body.Close()
 
 	return
 }
@@ -67,7 +65,7 @@ func (nh *HttpRe) FormatParams() (data interface{}, err error) {
 		}
 
 		data = strings.NewReader(vv.Encode())
-	case "application/json":
+	case "application/json", "text/event-stream;charset=utf-8":
 		b, errs := json.Marshal(&nh.Params)
 		if errs != nil {
 			err = fmt.Errorf("序列化参数错误, %v", errs)
@@ -90,9 +88,10 @@ func (nh *HttpRe) FormatParams() (data interface{}, err error) {
 
 }
 
-func (nh *HttpRe) NewRequest(method string, params io.Reader) (data []byte, err error) {
+func (nh *HttpRe) NewRequest(method string, params io.Reader) (body io.ReadCloser, err error) {
 	switch method {
 	case "POST":
+		params = strings.NewReader(nh.Fd)
 		nh.hr, err = http.NewRequest("POST", nh.Url, params)
 		if err != nil {
 			err = fmt.Errorf("创建POST请求失败, %v", err)
@@ -119,26 +118,18 @@ func (nh *HttpRe) NewRequest(method string, params io.Reader) (data []byte, err 
 		return
 	}
 
-	data, err = io.ReadAll(nh.resp.Body)
-	if err != nil {
-		err = fmt.Errorf("获取响应数据失败, esg = %v", err)
-		return
-	}
-
-	//状态码
-	if nh.resp.StatusCode != 200 {
-		err = errors.New(string(data))
-		return
-	}
+	body = nh.resp.Body
 
 	return
 }
 
-func NewHttpRe(url string, params, headers map[string]interface{}, tt int) *HttpRe {
+func HttpReq(url, fd string, params, headers map[string]interface{}, stream bool, tt int) *HttpRe {
 	return &HttpRe{
 		Url:     url,
 		Params:  params,
 		Headers: headers,
-		Timeout: 5,
+		Timeout: tt,
+		Fd:      fd,
+		Stream:  stream,
 	}
 }

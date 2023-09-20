@@ -90,7 +90,7 @@ func (d *DownloadLog) RequestApi(params ...string) (resp []byte, err error) {
 	v.Add("timestamp", strconv.Itoa(int(time.Now().Unix())))
 
 	url := d.url + v.Encode()
-	nh := newHttp.NewHttpRe(url, data, headers, 4)
+	nh := newHttp.NewHttpRe(url, "", data, headers, 4)
 	resp, err = nh.GET(client)
 	if err != nil {
 		return
@@ -183,7 +183,7 @@ func (d *DownloadLog) WriteToFile(path string) {
 
 		var data = make(map[string]interface{})
 		var headers = make(map[string]interface{})
-		nh := newHttp.NewHttpRe(url, data, headers, 4)
+		nh := newHttp.NewHttpRe(url, "", data, headers, 4)
 		resp, err := nh.GET(client)
 		if err == nil {
 			fn, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND, 0777)
