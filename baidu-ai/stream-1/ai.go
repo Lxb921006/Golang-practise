@@ -100,7 +100,7 @@ func main() {
 		"messages": []map[string]string{
 			{
 				"role":    "user",
-				"content": "",
+				"content": "我需要markdown的源代码格式，比如```markdown```， 你能直接用markdown的源代码格式回复吗？",
 			},
 		},
 		"stream": true,
