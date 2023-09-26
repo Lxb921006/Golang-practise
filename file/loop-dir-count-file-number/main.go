@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
 var (
 	total = 0
-	root  = "C:\\Windows"
+	root  = "D:\\"
 )
 
 func main() {
@@ -26,7 +27,9 @@ func Loop(root string) {
 	if err == nil {
 		for _, file := range fd {
 			if !file.IsDir() {
-				//fmt.Println(filepath.Join(root, file.Name()))
+				if strings.HasSuffix(file.Name(), ".sql") {
+					fmt.Println(root, file.Name())
+				}
 				total++
 			} else {
 				Loop(filepath.Join(root, file.Name()))

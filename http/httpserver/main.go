@@ -1,7 +1,7 @@
 package main
 
 import (
-	"io/ioutil"
+	"io"
 	"log"
 	"math/rand"
 	"net/http"
@@ -25,7 +25,7 @@ func main() {
 	defer pool.Close()
 
 	http.HandleFunc("/work", func(w http.ResponseWriter, r *http.Request) {
-		input, err := ioutil.ReadAll(r.Body)
+		input, err := io.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 		}

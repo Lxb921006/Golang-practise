@@ -17,8 +17,8 @@ var (
 
 func main() {
 	start := time.Now()
-	limitCh := make(chan struct{}, 20)
-	root := "C:\\Windows"
+	limitCh := make(chan struct{}, 100)
+	root := "D:\\"
 
 	go func() {
 		for {
