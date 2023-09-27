@@ -52,7 +52,7 @@ func main() {
 
 	var block chan struct{}
 	var config Config
-	work := make(chan string)
+	var work = make(chan string)
 
 	ctx := context.Background()
 
