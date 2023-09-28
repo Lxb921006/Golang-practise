@@ -33,6 +33,7 @@ func httpServer() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/download", download)
 	mux.HandleFunc("/upload", upload)
+	mux.HandleFunc("/content", sendFileContent)
 
 	listen := &http.Server{
 		Addr:              ":8092",
@@ -110,4 +111,23 @@ func sendFileHandle(file string, w http.ResponseWriter) (err error) {
 	}
 
 	return
+}
+
+func sendFileContent(writer http.ResponseWriter, request *http.Request) {
+	var resp Resp
+	if request.Method == "GET" {
+		f := request.URL.Query()
+		file := filepath.Join("C:\\Users\\Administrator\\Desktop", f.Get("file"))
+		_, err := os.Stat(file)
+		if err != nil {
+			b := resp.M(err.Error(), 10002)
+			writer.Write(b)
+			return
+		}
+		http.ServeFile(writer, request, file)
+	} else {
+		b := resp.M("请求方法错误", 10003)
+		writer.Write(b)
+	}
+
 }
