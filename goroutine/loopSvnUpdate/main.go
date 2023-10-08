@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// svn update
+// Config svn update
 type Config struct {
 	Project     []string `json:"project"`
 	Limit       int      `json:"limit"`
@@ -81,6 +81,7 @@ func main() {
 		}(ctx)
 	}
 
+	// 这里之所以可以阻塞主线程是因为子线程里的channel work有一直在rec跟send，仅当主线程任何一个线程都阻塞（收发）的时候就会发生死锁
 	<-block
 }
 

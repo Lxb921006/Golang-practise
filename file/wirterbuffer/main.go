@@ -58,14 +58,14 @@ func main() {
 	start := time.Now()
 	fs, _ := os.Create("C:/Users/Administrator/Desktop/a.txt")
 
-	//nw := NewWriteBuffer(fs, 4096)
-	//defer nw.flush() // 把内存里残留的写进去
-	//
-	//for i := 0; i < 10000; i++ {
-	//	nw.writeString(content)
-	//}
+	nw := NewWriteBuffer(fs, 4096)
+	defer nw.flush() // 把内存里残留的写进去
 
-	commonWrite(fs)
+	for i := 0; i < 10000; i++ {
+		nw.writeString(content)
+	}
+
+	//commonWrite(fs)
 
 	fmt.Println("cost time >>>", time.Since(start))
 }

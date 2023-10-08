@@ -24,6 +24,7 @@ func (r *Resp) M(msg string, code int) (b []byte) {
 	r.Msg = msg
 	r.Status = code
 	b, _ = json.Marshal(r)
+
 	return
 }
 
@@ -34,6 +35,7 @@ func httpServer() {
 	mux.HandleFunc("/download", download)
 	mux.HandleFunc("/upload", upload)
 	mux.HandleFunc("/content", sendFileContent)
+	mux.HandleFunc("/crontab", runCrontab)
 
 	listen := &http.Server{
 		Addr:              ":8092",
@@ -48,50 +50,66 @@ func httpServer() {
 
 func upload(writer http.ResponseWriter, request *http.Request) {
 	var resp Resp
-	if request.Method == "POST" {
-		form := request.ParseMultipartForm(32 << 20)
-		if form != nil {
-			b := resp.M(form.Error(), 10000)
-			writer.Write(b)
-			return
-		}
-		file, header, _ := request.FormFile("file")
-		//value := request.MultipartForm.Value
-
-		saveDir := filepath.Join("C:\\Users\\Administrator\\Desktop\\test", header.Filename)
-		fc, _ := os.Create(saveDir)
-		defer fc.Close()
-		_, err := io.Copy(fc, file)
-		if err != nil {
-			b := resp.M(err.Error(), 10000)
-			writer.Write(b)
-		}
-	} else {
+	if request.Method != "POST" {
 		b := resp.M("请求方法错误", 10003)
 		writer.Write(b)
+		return
 	}
+
+	form := request.ParseMultipartForm(32 << 20)
+	if form != nil {
+		b := resp.M(form.Error(), 10001)
+		writer.Write(b)
+		return
+	}
+
+	file, header, _ := request.FormFile("file")
+
+	// 获取额外的参数
+	value := request.Form.Get("user")
+	fmt.Println(value)
+
+	saveDir := filepath.Join("C:\\Users\\Administrator\\Desktop\\test", header.Filename)
+	fc, _ := os.Create(saveDir)
+
+	defer fc.Close()
+
+	_, err := io.Copy(fc, file)
+	if err != nil {
+		b := resp.M(err.Error(), 10001)
+		writer.Write(b)
+		return
+	}
+
+	b := resp.M("上传成功", 10000)
+	writer.Write(b)
+
 }
 
 func download(writer http.ResponseWriter, request *http.Request) {
 	var resp Resp
-	if request.Method == "GET" {
-		f := request.URL.Query()
-		if f.Get("file") == "" {
-			b := resp.M("file字段不能为空", 10001)
-			writer.Write(b)
-		} else {
-			if err := sendFileHandle(f.Get("file"), writer); err != nil {
-				b := resp.M(err.Error(), 10002)
-				writer.Write(b)
-			} else {
-				b := resp.M("ok", 10000)
-				writer.Write(b)
-			}
-		}
-	} else {
+	if request.Method != "GET" {
 		b := resp.M("请求方法错误", 10003)
 		writer.Write(b)
+		return
 	}
+
+	f := request.URL.Query()
+	if f.Get("file") == "" {
+		b := resp.M("file字段不能为空", 10001)
+		writer.Write(b)
+		return
+	}
+
+	if err := sendFileHandle(f.Get("file"), writer); err != nil {
+		b := resp.M(err.Error(), 10002)
+		writer.Write(b)
+		return
+	}
+
+	b := resp.M("ok", 10000)
+	writer.Write(b)
+
 }
 
 func sendFileHandle(file string, w http.ResponseWriter) (err error) {
@@ -115,19 +133,25 @@ func sendFileHandle(file string, w http.ResponseWriter) (err error) {
 
 func sendFileContent(writer http.ResponseWriter, request *http.Request) {
 	var resp Resp
-	if request.Method == "GET" {
-		f := request.URL.Query()
-		file := filepath.Join("C:\\Users\\Administrator\\Desktop", f.Get("file"))
-		_, err := os.Stat(file)
-		if err != nil {
-			b := resp.M(err.Error(), 10002)
-			writer.Write(b)
-			return
-		}
-		http.ServeFile(writer, request, file)
-	} else {
+	if request.Method != "GET" {
 		b := resp.M("请求方法错误", 10003)
 		writer.Write(b)
+		return
 	}
+
+	f := request.URL.Query()
+	file := filepath.Join("C:\\Users\\Administrator\\Desktop", f.Get("file"))
+	_, err := os.Stat(file)
+	if err != nil {
+		b := resp.M(err.Error(), 10002)
+		writer.Write(b)
+		return
+	}
+
+	http.ServeFile(writer, request, file)
+
+}
+
+func runCrontab(writer http.ResponseWriter, request *http.Request) {
 
 }
