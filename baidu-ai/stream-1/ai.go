@@ -100,7 +100,7 @@ func main() {
 		"messages": []map[string]string{
 			{
 				"role":    "user",
-				"content": "能分析代码吗？",
+				"content": "linux awk遍历每一列",
 			},
 		},
 		"stream": true,
