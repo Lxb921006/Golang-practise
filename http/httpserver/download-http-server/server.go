@@ -35,7 +35,6 @@ func httpServer() {
 	mux.HandleFunc("/download", download)
 	mux.HandleFunc("/upload", upload)
 	mux.HandleFunc("/content", sendFileContent)
-	mux.HandleFunc("/crontab", runCrontab)
 
 	listen := &http.Server{
 		Addr:              ":8092",
@@ -149,9 +148,5 @@ func sendFileContent(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	http.ServeFile(writer, request, file)
-
-}
-
-func runCrontab(writer http.ResponseWriter, request *http.Request) {
 
 }

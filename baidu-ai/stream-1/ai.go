@@ -84,7 +84,7 @@ func chat(payload map[string]interface{}) {
 	for {
 		n, err := reader.Read(buf)
 		if err != nil {
-			if err.Error() == "EOF" {
+			if err == io.EOF {
 				break
 			}
 			fmt.Println("读取响应体失败:", err)
@@ -100,7 +100,7 @@ func main() {
 		"messages": []map[string]string{
 			{
 				"role":    "user",
-				"content": "linux awk遍历每一列",
+				"content": "你现在能画图了吗？如果可以请帮我画一张二次元美女图片",
 			},
 		},
 		"stream": true,
