@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
-	"runtime"
 	"sync"
 	"time"
 )
@@ -16,24 +16,13 @@ var (
 )
 
 func main() {
+	limitCh := make(chan struct{}, 20)
 	start := time.Now()
-<<<<<<< HEAD
-	limitCh := make(chan struct{}, 100)
-	root := "D:\\"
-=======
 	root := "C:\\Windows"
->>>>>>> main
 
 	go func() {
-		for {
-			select {
-			case _, ok := <-totalCh:
-				if !ok {
-					return
-				}
-				total++
-			default:
-			}
+		for range totalCh {
+			total++
 		}
 	}()
 
@@ -41,18 +30,9 @@ func main() {
 
 	wg.Wait()
 
-	close(totalCh)
+	close(totalCh) // 关闭totalCh通道，通知统计goroutine退出
 
-	fmt.Printf("total = %d, time = %v/n", total, time.Since(start))
-
-	var i = 10
-
-	for i > 0 {
-		fmt.Println(runtime.NumGoroutine())
-		i--
-		time.Sleep(time.Second)
-	}
-
+	fmt.Printf("total = %d, time = %v\n", total, time.Since(start))
 }
 
 func Loop(root string, limit chan struct{}, f bool) {
@@ -65,7 +45,13 @@ func Loop(root string, limit chan struct{}, f bool) {
 				select {
 				case limit <- struct{}{}:
 					wg.Add(1)
-					go Loop(filepath.Join(root, file.Name()), limit, false)
+					go func(file fs.DirEntry) {
+						defer func() {
+							<-limit
+							wg.Done()
+						}()
+						Loop(filepath.Join(root, file.Name()), limit, false)
+					}(file)
 				default:
 					Loop(filepath.Join(root, file.Name()), limit, true)
 				}
@@ -74,7 +60,6 @@ func Loop(root string, limit chan struct{}, f bool) {
 	}
 
 	if !f {
-		<-limit
 		wg.Done()
 	}
 }
