@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"sync"
@@ -20,12 +21,8 @@ func main() {
 	root := "C:\\Windows"
 
 	go func() {
-		for {
-			select {
-			case <-totalCh:
-				total++
-			default:
-			}
+		for range totalCh {
+			total++
 		}
 	}()
 
@@ -33,8 +30,9 @@ func main() {
 
 	wg.Wait()
 
-	fmt.Printf("total = %d, time = %v/n", total, time.Since(start))
+	close(totalCh) // 关闭totalCh通道，通知统计goroutine退出
 
+	fmt.Printf("total = %d, time = %v\n", total, time.Since(start))
 }
 
 func Loop(root string, limit chan struct{}, f bool) {
@@ -47,7 +45,13 @@ func Loop(root string, limit chan struct{}, f bool) {
 				select {
 				case limit <- struct{}{}:
 					wg.Add(1)
-					go Loop(filepath.Join(root, file.Name()), limit, false)
+					go func(file fs.DirEntry) {
+						defer func() {
+							<-limit
+							wg.Done()
+						}()
+						Loop(filepath.Join(root, file.Name()), limit, false)
+					}(file)
 				default:
 					Loop(filepath.Join(root, file.Name()), limit, true)
 				}
@@ -56,7 +60,6 @@ func Loop(root string, limit chan struct{}, f bool) {
 	}
 
 	if !f {
-		<-limit
 		wg.Done()
 	}
 }
