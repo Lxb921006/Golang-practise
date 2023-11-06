@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"sync"
 	"time"
 )
@@ -18,7 +17,7 @@ var (
 func main() {
 	start := time.Now()
 	limitCh := make(chan struct{}, 200)
-	root := "D:\\"
+	root := "C:\\Users"
 
 	go func() {
 		for {
@@ -29,7 +28,6 @@ func main() {
 				}
 				total++
 			default:
-
 			}
 		}
 	}()
@@ -38,7 +36,6 @@ func main() {
 
 	wg.Wait()
 
-	//防止内存泄露
 	close(totalCh)
 
 	fmt.Printf("total = %d, time = %v\n", total, time.Since(start))
@@ -49,25 +46,21 @@ func Loop(root string, limit chan struct{}, f bool) {
 	if err == nil {
 		for _, file := range fd {
 			if !file.IsDir() {
-				fmt.Printf("time >>> %s, count >>> %d, gn >>> %d, channel_cap >>> %d\n", time.Now().Format("2006-01-02 15:04:05"), total, runtime.NumGoroutine(), len(limit))
 				totalCh <- struct{}{}
 			} else {
 				select {
-				case limit <- struct{}{}: // 限制goroutine创建数量
+				case limit <- struct{}{}:
 					wg.Add(1)
 					go Loop(filepath.Join(root, file.Name()), limit, false)
 				default:
-
-					// 在limit阻塞期间, 让Loop自己也可以继续遍历出文件统计
 					Loop(filepath.Join(root, file.Name()), limit, true)
 				}
 			}
 		}
 	}
 
-	// 遍历完目录要给让limit给出位置给新的goroutine用,并标记当前goroutine已完成
 	if !f {
-		<-limit
 		wg.Done()
+		<-limit
 	}
 }

@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"sync"
@@ -16,21 +15,34 @@ var (
 )
 
 func main() {
-	limitCh := make(chan struct{}, 20)
 	start := time.Now()
-	root := "C:\\Windows"
+	limitCh := make(chan struct{}, 10)
+	root := "D:\\"
 
 	go func() {
-		for range totalCh {
-			total++
+		for {
+			select {
+			case _, ok := <-totalCh:
+				if !ok {
+					return
+				}
+				total++
+			default:
+			}
 		}
 	}()
 
-	Loop(root, limitCh, true)
+	fd, _ := os.ReadDir(root)
+	for _, fn := range fd {
+		if fn.IsDir() {
+			fmt.Println(filepath.Join(root, fn.Name()))
+			Loop(filepath.Join(root, fn.Name()), limitCh, true)
+		}
+	}
 
 	wg.Wait()
 
-	close(totalCh) // 关闭totalCh通道，通知统计goroutine退出
+	close(totalCh)
 
 	fmt.Printf("total = %d, time = %v\n", total, time.Since(start))
 }
@@ -45,13 +57,7 @@ func Loop(root string, limit chan struct{}, f bool) {
 				select {
 				case limit <- struct{}{}:
 					wg.Add(1)
-					go func(file fs.DirEntry) {
-						defer func() {
-							<-limit
-							wg.Done()
-						}()
-						Loop(filepath.Join(root, file.Name()), limit, false)
-					}(file)
+					go Loop(filepath.Join(root, file.Name()), limit, false)
 				default:
 					Loop(filepath.Join(root, file.Name()), limit, true)
 				}
@@ -61,5 +67,6 @@ func Loop(root string, limit chan struct{}, f bool) {
 
 	if !f {
 		wg.Done()
+		<-limit
 	}
 }

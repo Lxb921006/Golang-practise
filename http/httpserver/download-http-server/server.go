@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"time"
 )
@@ -18,11 +20,13 @@ func main() {
 type Resp struct {
 	Msg    string `json:"msg"`
 	Status int    `json:"status"`
+	Date   string `json:"date"`
 }
 
 func (r *Resp) M(msg string, code int) (b []byte) {
 	r.Msg = msg
 	r.Status = code
+	r.Date = time.Now().Format("2006-01-02 15:04:05")
 	b, _ = json.Marshal(r)
 
 	return
@@ -35,6 +39,7 @@ func httpServer() {
 	mux.HandleFunc("/download", download)
 	mux.HandleFunc("/upload", upload)
 	mux.HandleFunc("/content", sendFileContent)
+	mux.HandleFunc("/aws-cdn-refresh", awsCdnRefresh)
 
 	listen := &http.Server{
 		Addr:              ":8092",
@@ -148,5 +153,41 @@ func sendFileContent(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	http.ServeFile(writer, request, file)
+
+}
+
+func awsCdnRefresh(writer http.ResponseWriter, request *http.Request) {
+	var resp Resp
+	var ctx = context.Background()
+	if request.Method != "GET" {
+		b := resp.M("请求方法错误", 10003)
+		writer.Write(b)
+		return
+	}
+
+	var f = request.URL.Query()
+	var path = f.Get("path")
+	if path == "" {
+		b := resp.M("刷新目录不能为空", 10002)
+		writer.Write(b)
+		return
+	}
+
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, time.Second*time.Duration(10))
+	defer cancel()
+
+	out, err := exec.CommandContext(ctx, "sh", "/root/aws_cdn_refresh.sh", path).Output()
+	fmt.Printf("---------%s----------\n", time.Now().Format("2006-01-02 15:04:05"))
+	fmt.Println(string(out))
+	if err != nil {
+		b := resp.M(string(out), 10001)
+		writer.Write(b)
+		return
+	}
+
+	b := resp.M(fmt.Sprintf("%s刷新成功, 刷新生效需等1分钟左右", path), 10000)
+
+	writer.Write(b)
 
 }

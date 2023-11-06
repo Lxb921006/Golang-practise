@@ -77,7 +77,7 @@ func NewFindFiles(path, filename string) *FindFiles {
 		Path:           path,
 		FileName:       filename,
 		Workers:        1,
-		MaxWorkers:     10,
+		MaxWorkers:     200,
 		SearchChan:     make(chan string),
 		WorkerDoneChan: make(chan bool),
 		ResChan:        make(chan bool),
@@ -88,7 +88,7 @@ func NewFindFiles(path, filename string) *FindFiles {
 func main() {
 	//统计test目录下文件名为test.txt的文件数量, 以及耗时
 	start := time.Now()
-	ff := NewFindFiles("D:\\", "test.txt")
+	ff := NewFindFiles("C:\\Windows", "test.txt")
 	// ff := NewFindFiles("C:/Users/Administrator/Desktop/test2/", "test.txt")
 	ff.Run()
 	fmt.Printf("total=%d, count file = %d,cost time = %v\n", ff.Total, ff.Match, time.Since(start))
