@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sync"
 	"time"
 )
@@ -16,8 +17,8 @@ var (
 
 func main() {
 	start := time.Now()
-	limitCh := make(chan struct{}, 200)
-	root := "C:\\Users"
+	limitCh := make(chan struct{}, 8)
+	root := "D:\\myproject"
 
 	go func() {
 		for {
@@ -28,6 +29,7 @@ func main() {
 				}
 				total++
 			default:
+				//fmt.Println("gn >>> ", runtime.NumGoroutine())
 			}
 		}
 	}()
@@ -39,11 +41,20 @@ func main() {
 	close(totalCh)
 
 	fmt.Printf("total = %d, time = %v\n", total, time.Since(start))
+
+	var c = 0
+	for c < 10 {
+		c++
+		fmt.Println(runtime.NumGoroutine())
+		<-time.After(time.Second * 1)
+	}
+
 }
 
 func Loop(root string, limit chan struct{}, f bool) {
 	fd, err := os.ReadDir(root)
 	if err == nil {
+		//fmt.Println(root, runtime.NumGoroutine())
 		for _, file := range fd {
 			if !file.IsDir() {
 				totalCh <- struct{}{}
