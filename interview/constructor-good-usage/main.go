@@ -1,6 +1,8 @@
 package main
 
-//优雅的构造函数写法
+import "fmt"
+
+// 优雅的构造函数写法
 type Person struct {
 	Name string
 	Tel  int
@@ -13,6 +15,7 @@ func NewPerson_(options ...Option) *Person {
 	for _, option := range options {
 		option(p)
 	}
+	fmt.Println(p)
 	return p
 }
 

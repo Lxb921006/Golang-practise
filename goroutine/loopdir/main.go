@@ -18,7 +18,7 @@ var (
 func main() {
 	start := time.Now()
 	limitCh := make(chan struct{}, 8)
-	root := "D:\\myproject"
+	root := "D:\\project"
 
 	go func() {
 		for {
@@ -43,7 +43,7 @@ func main() {
 	fmt.Printf("total = %d, time = %v\n", total, time.Since(start))
 
 	var c = 0
-	for c < 10 {
+	for c < 5 {
 		c++
 		fmt.Println(runtime.NumGoroutine())
 		<-time.After(time.Second * 1)
