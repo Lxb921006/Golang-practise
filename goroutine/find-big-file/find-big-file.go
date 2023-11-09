@@ -9,6 +9,11 @@ import (
 	"time"
 )
 
+const (
+	//mb
+	size = 500
+)
+
 var (
 	wg      sync.WaitGroup
 	totalCh = make(chan struct{})
@@ -17,29 +22,24 @@ var (
 
 func main() {
 	start := time.Now()
-	limitCh := make(chan struct{}, 8)
+	limitCh := make(chan struct{}, runtime.NumCPU())
 	root := "D:\\"
 
 	go func() {
 		for {
 			select {
-			case _, ok := <-totalCh:
+			case file, ok := <-totalCh:
 				if !ok {
 					return
 				}
+				fmt.Println(file)
 				total++
 			default:
 			}
 		}
 	}()
 
-	fd, _ := os.ReadDir(root)
-	for _, fn := range fd {
-		if fn.IsDir() {
-			Loop(filepath.Join(root, fn.Name()), limitCh, true)
-			fmt.Println(filepath.Join(root, fn.Name()))
-		}
-	}
+	Loop(root, limitCh, true)
 
 	wg.Wait()
 
@@ -57,10 +57,14 @@ func main() {
 func Loop(root string, limit chan struct{}, f bool) {
 	fd, err := os.ReadDir(root)
 	if err == nil {
-		//fmt.Println(root, runtime.NumGoroutine())
 		for _, file := range fd {
 			if !file.IsDir() {
-				totalCh <- struct{}{}
+				s, err := os.Stat(filepath.Join(root, file.Name()))
+				if err == nil {
+					if s.Size()/1024/1024 > size {
+						totalCh <- struct{}{}
+					}
+				}
 			} else {
 				select {
 				case limit <- struct{}{}:
