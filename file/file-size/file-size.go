@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 )
 
 func main() {
-	root := "D:\\"
+	root := "E:\\"
 
 	fl, _ := os.ReadDir(root)
 	for _, file := range fl {
@@ -21,6 +20,4 @@ func main() {
 			}
 		}
 	}
-
-	fmt.Println("cpu num >>> ", runtime.NumCPU())
 }
