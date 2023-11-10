@@ -12,12 +12,17 @@ import (
 var (
 	wg      sync.WaitGroup
 	totalCh = make(chan struct{})
+	limitCh = make(chan struct{}, runtime.NumCPU())
 	total   = 0
 )
 
 func main() {
 	start := time.Now()
-	limitCh := make(chan struct{}, runtime.NumCPU())
+
+	defer func() {
+		fmt.Printf("total = %d, time = %v\n", total, time.Since(start))
+	}()
+
 	root := "C:\\Windows"
 
 	go func() {
@@ -38,8 +43,6 @@ func main() {
 	wg.Wait()
 
 	close(totalCh)
-
-	fmt.Printf("total = %d, time = %v\n", total, time.Since(start))
 }
 
 func Loop(root string, limit chan struct{}, f bool) {

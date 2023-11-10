@@ -16,13 +16,19 @@ const (
 
 var (
 	wg      sync.WaitGroup
-	totalCh = make(chan struct{})
+	totalCh = make(chan string)
 	total   = 0
 )
 
 func main() {
 	start := time.Now()
-	limitCh := make(chan struct{}, runtime.NumCPU())
+
+	defer func() {
+		fmt.Printf("文件大于%dm总共有: %d, 耗时: %v\n", size, total, time.Since(start))
+	}()
+
+	limitCh := make(chan struct{}, runtime.NumCPU()/2)
+
 	root := "D:\\"
 
 	go func() {
@@ -32,7 +38,7 @@ func main() {
 				if !ok {
 					return
 				}
-				fmt.Println(file)
+				fmt.Printf("文件路径: %s, 当前协程数量: %d\n", file, runtime.NumGoroutine())
 				total++
 			default:
 			}
@@ -45,13 +51,6 @@ func main() {
 
 	close(totalCh)
 
-	fmt.Printf("total = %d, time = %v\n", total, time.Since(start))
-	var c = 0
-	for c < 10 {
-		c++
-		fmt.Println(runtime.NumGoroutine())
-		<-time.After(time.Second * 1)
-	}
 }
 
 func Loop(root string, limit chan struct{}, f bool) {
@@ -62,7 +61,7 @@ func Loop(root string, limit chan struct{}, f bool) {
 				s, err := os.Stat(filepath.Join(root, file.Name()))
 				if err == nil {
 					if s.Size()/1024/1024 > size {
-						totalCh <- struct{}{}
+						totalCh <- filepath.Join(root, file.Name())
 					}
 				}
 			} else {

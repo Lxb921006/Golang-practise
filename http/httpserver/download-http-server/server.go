@@ -21,12 +21,23 @@ type Resp struct {
 	Msg    string `json:"msg"`
 	Status int    `json:"status"`
 	Date   string `json:"date"`
+	Detail string `json:"detail,omitempty"`
 }
 
 func (r *Resp) M(msg string, code int) (b []byte) {
 	r.Msg = msg
 	r.Status = code
-	r.Date = time.Now().Format("2006-01-02 15:04:05")
+	r.Date = time.Now().Add(time.Hour * time.Duration(11)).Format("2006-01-02 15:04:05")
+	b, _ = json.Marshal(r)
+
+	return
+}
+
+func (r *Resp) K(resp *Resp) (b []byte) {
+	r.Msg = resp.Msg
+	r.Status = resp.Status
+	r.Date = time.Now().Add(time.Hour * time.Duration(11)).Format("2006-01-02 15:04:05")
+	r.Detail = resp.Detail
 	b, _ = json.Marshal(r)
 
 	return
@@ -165,10 +176,11 @@ func awsCdnRefresh(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	var f = request.URL.Query()
-	var path = f.Get("path")
-	if path == "" {
-		b := resp.M("刷新目录不能为空", 10002)
+	f := request.URL.Query()
+	path := f.Get("path")
+	item := f.Get("item")
+	if path == "" || item == "" {
+		b := resp.M("刷新目录或项目名不能为空", 10002)
 		writer.Write(b)
 		return
 	}
@@ -177,7 +189,7 @@ func awsCdnRefresh(writer http.ResponseWriter, request *http.Request) {
 	ctx, cancel = context.WithTimeout(ctx, time.Second*time.Duration(10))
 	defer cancel()
 
-	out, err := exec.CommandContext(ctx, "sh", "/root/aws_cdn_refresh.sh", path).Output()
+	out, err := exec.CommandContext(ctx, "sh", "/root/aws_cdn_refresh.sh", item, path).Output()
 	fmt.Printf("---------%s----------\n", time.Now().Format("2006-01-02 15:04:05"))
 	fmt.Println(string(out))
 	if err != nil {
@@ -186,7 +198,13 @@ func awsCdnRefresh(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	b := resp.M(fmt.Sprintf("%s刷新成功, 刷新生效需等1分钟左右", path), 10000)
+	respK := &Resp{
+		Msg:    fmt.Sprintf("%s刷新成功, 刷新生效需等1分钟左右", path),
+		Status: 10000,
+		Detail: string(out),
+	}
+
+	b := resp.K(respK)
 
 	writer.Write(b)
 
