@@ -18,10 +18,11 @@ func main() {
 }
 
 type Resp struct {
-	Msg    string `json:"msg"`
-	Status int    `json:"status"`
-	Date   string `json:"date"`
-	Detail string `json:"detail,omitempty"`
+	Msg    string                 `json:"msg"`
+	Status int                    `json:"status"`
+	Date   string                 `json:"date"`
+	Detail map[string]interface{} `json:"detail,omitempty"`
+	Br     []byte                 `json:"br,omitempty"`
 }
 
 func (r *Resp) M(msg string, code int) (b []byte) {
@@ -41,6 +42,14 @@ func (r *Resp) K(resp *Resp) (b []byte) {
 	b, _ = json.Marshal(r)
 
 	return
+}
+
+func (r *Resp) R(writer http.ResponseWriter) error {
+	_, err := writer.Write(r.Br)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func httpServer() {
@@ -169,7 +178,7 @@ func sendFileContent(writer http.ResponseWriter, request *http.Request) {
 
 func awsCdnRefresh(writer http.ResponseWriter, request *http.Request) {
 	var resp Resp
-	var ctx = context.Background()
+	var awsResp map[string]interface{}
 	if request.Method != "GET" {
 		b := resp.M("请求方法错误", 10003)
 		writer.Write(b)
@@ -186,26 +195,31 @@ func awsCdnRefresh(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, time.Second*time.Duration(10))
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(10))
 	defer cancel()
 
 	out, err := exec.CommandContext(ctx, "sh", "/root/aws_cdn_refresh.sh", item, path).Output()
-	fmt.Printf("---------%s----------\n", time.Now().Format("2006-01-02 15:04:05"))
-	fmt.Println(string(out))
 	if err != nil {
 		b := resp.M(string(out), 10001)
 		writer.Write(b)
 		return
 	}
 
-	respK := &Resp{
-		Msg:    fmt.Sprintf("%s刷新成功, 刷新生效需等1分钟左右", path),
-		Status: 10000,
-		Detail: string(out),
+	err = json.Unmarshal(out, &awsResp)
+	if err != nil {
+		b := resp.M(err.Error(), 10004)
+		writer.Write(b)
+		return
 	}
 
-	b := resp.K(respK)
+	respKRM := &Resp{
+		Msg:    fmt.Sprintf("%s刷新成功, 刷新生效需等20-50s左右", path),
+		Status: 10000,
+		Detail: awsResp,
+	}
 
-	writer.Write(b)
+	b := resp.K(respKRM)
+	respKRM.Br = b
 
+	respKRM.R(writer)
 }
