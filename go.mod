@@ -1,6 +1,6 @@
 module github.com/Lxb921006/Golang-practise
 
-go 1.19
+go 1.20
 
 require (
 	github.com/aws/aws-sdk-go v1.47.3
@@ -13,8 +13,8 @@ require (
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/gorilla/websocket v1.5.0
-	google.golang.org/grpc v1.56.1
-	google.golang.org/protobuf v1.30.0
+	google.golang.org/grpc v1.59.0
+	google.golang.org/protobuf v1.31.0
 	gopkg.in/gcfg.v1 v1.2.3
 	gorm.io/driver/mysql v1.4.5
 	gorm.io/gorm v1.24.3
@@ -57,7 +57,8 @@ require (
 	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
-	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
+	google.golang.org/genproto v0.0.0-20230822172742-b8732ec3820d // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20230822172742-b8732ec3820d // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
