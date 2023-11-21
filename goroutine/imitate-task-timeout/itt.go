@@ -21,32 +21,35 @@ func main() {
 	wg.Add(10)
 	for i := 0; i < 10; i++ {
 		go func() {
-			defer wg.Done()
-			for {
-				select {
-				case <-ctx.Done():
-					return
-				case v, ok := <-taskCh:
-					if !ok {
+			go func() {
+				defer wg.Done()
+				for {
+					select {
+					case <-ctx.Done():
 						return
-					}
-					go func() {
+					case v, ok := <-taskCh:
+						if !ok {
+							return
+						}
 						task(v)
 						done <- 1
-					}()
-				case <-done:
-					lock.Lock()
-					counter++
-					lock.Unlock()
-				case <-time.After(time.Second):
-					fmt.Println("task time out")
+					}
 				}
+			}()
+
+			select {
+			case <-done:
+				lock.Lock()
+				counter++
+				lock.Unlock()
+			case <-time.After(time.Second * 3):
+				fmt.Println("time out")
 			}
 		}()
 	}
 
 	go func() {
-		for i := 0; i < 100; i++ {
+		for i := 0; i < 50; i++ {
 			taskCh <- i
 		}
 
@@ -59,6 +62,6 @@ func main() {
 }
 
 func task(i int) {
-	time.Sleep(time.Duration(rand.Intn(10)+1) * time.Second)
+	time.Sleep(time.Duration(rand.Intn(30)+1) * time.Second)
 	fmt.Printf("task %d done\n", i)
 }
