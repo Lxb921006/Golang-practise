@@ -31,7 +31,7 @@ type pool struct {
 func newPool(w int, ctx context.Context) *pool {
 	return &pool{
 		workers: w,
-		taskCh:  make(chan func() result),
+		taskCh:  make(chan func() result, 1),
 		done:    make(chan struct{}, 1),
 		ctx:     ctx,
 		wg:      new(sync.WaitGroup),
@@ -52,7 +52,7 @@ func (p *pool) start() *sync.WaitGroup {
 			case <-p.ctx.Done():
 				return
 			case <-p.done:
-			case <-time.After(time.Second * 3):
+			case <-time.After(time.Second * 2):
 				fmt.Println("time out")
 			}
 		}
@@ -63,10 +63,18 @@ func (p *pool) start() *sync.WaitGroup {
 
 func (p *pool) work() {
 	defer p.wg.Done()
-	for v := range p.taskCh {
-		resp := v()
-		fmt.Println(resp)
-		p.done <- struct{}{}
+	for {
+		select {
+		case <-p.ctx.Done():
+			return
+		case v, ok := <-p.taskCh:
+			if !ok {
+				return
+			}
+			resp := v()
+			fmt.Println(resp)
+			p.done <- struct{}{}
+		}
 	}
 }
 
@@ -81,9 +89,7 @@ func (p *pool) wait() {
 }
 
 func (p *pool) addTask(task func() result) {
-
 	p.taskCh <- task
-
 }
 
 func main() {
