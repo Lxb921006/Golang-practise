@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"time"
 )
 
@@ -34,7 +35,7 @@ func main() {
 
 	}()
 
-	time.Sleep(30 * time.Second)
+	fmt.Println("all task finished")
 }
 
 func doSomething(ctx context.Context, ch chan string) {
@@ -45,7 +46,7 @@ func doSomething(ctx context.Context, ch chan string) {
 }
 
 func run() {
-	for {
-		time.Sleep(time.Second)
-	}
+	time.Sleep(time.Second * time.Duration(rand.Intn(10)+1))
+	fmt.Println("done")
+
 }

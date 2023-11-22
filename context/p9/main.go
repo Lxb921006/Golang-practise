@@ -4,13 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"math/rand"
 	"sync"
 	"time"
 )
 
 func main() {
-	rand.Seed(time.Now().UnixNano() + 1) // +1 'cause Playground's time is fixed
 	fmt.Printf("doAllWork: %v\n", doAllWork())
 }
 
@@ -26,12 +24,12 @@ func doAllWork() error {
 			defer wg.Done()
 
 			for j := 0; j < 10; j++ {
-				// Check if any error occurred in any other gorouties:
+				// Check if any error occurred in any other goroutines:
 				select {
 				case <-ctx.Done():
 					log.Print("timeout")
 					return // Error somewhere, terminate
-				default: // Default is must to avoid blocking
+				default: // Default is must avoid blocking
 				}
 				result, err := work(j)
 				if err != nil {

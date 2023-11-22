@@ -70,9 +70,6 @@ func (w *WorkerPool) loop() {
 		select {
 		case <-w.ctx.Done():
 			return
-		case <-time.After(time.Second):
-			fmt.Println("time out")
-			return
 		case task, ok := <-w.taskCh:
 			if !ok {
 				return

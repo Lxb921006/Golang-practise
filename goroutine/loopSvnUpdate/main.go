@@ -47,9 +47,6 @@ func (c Config) GetFileData(file string) (cc Config, err error) {
 }
 
 func main() {
-
-	rand.Seed(time.Now().UnixNano())
-
 	var block chan struct{}
 	var config Config
 	var work = make(chan string)
