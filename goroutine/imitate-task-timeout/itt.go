@@ -31,8 +31,8 @@ type pool struct {
 func newPool(w int, ctx context.Context) *pool {
 	return &pool{
 		workers: w,
-		taskCh:  make(chan func() result, 1),
-		done:    make(chan struct{}, 1),
+		taskCh:  make(chan func() result),
+		done:    make(chan struct{}),
 		ctx:     ctx,
 		wg:      new(sync.WaitGroup),
 		once:    new(sync.Once),
@@ -96,7 +96,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	p := newPool(5, ctx)
+	p := newPool(10, ctx)
 	job := p.start()
 
 	go func() {
@@ -105,7 +105,8 @@ func main() {
 				id: i,
 			}
 			p.addTask(func() result {
-				time.Sleep(time.Duration(rand.Intn(10)+1) * time.Second)
+
+				time.Sleep(time.Duration(rand.Intn(20)+1) * time.Second)
 				return resp
 			})
 		}
