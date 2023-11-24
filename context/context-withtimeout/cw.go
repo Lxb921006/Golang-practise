@@ -3,24 +3,45 @@ package main
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 )
 
 func main() {
+	var wg sync.WaitGroup
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(2))
 	defer cancel()
 
+	//go func() {
+	//	for {
+	//		select {
+	//		case <-ctx.Done():
+	//			fmt.Println(ctx.Err())
+	//			return
+	//		}
+	//	}
+	//}()
+
+	wg.Add(1)
+
 	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				fmt.Println(ctx.Err())
-				return
+		defer wg.Done()
+
+		go func() {
+			for {
+				select {
+				case <-ctx.Done():
+					fmt.Println(ctx.Err())
+					return
+				}
 			}
-		}
+		}()
+
+		resp := task(ctx)
+		fmt.Println(resp)
 	}()
-	resp := task(ctx)
-	fmt.Println(resp)
+
+	wg.Wait()
 
 }
 
