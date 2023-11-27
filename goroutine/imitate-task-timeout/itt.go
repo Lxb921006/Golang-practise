@@ -2,15 +2,10 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"math/rand"
 	"sync"
 	"time"
 )
-
-//var to bool
-//var counter int
-//var lock sync.Mutex
 
 type result struct {
 	resp string
@@ -22,16 +17,16 @@ type pool struct {
 	wg      *sync.WaitGroup
 	lock    *sync.Mutex
 	once    *sync.Once
-	taskCh  chan func() result
+	taskCh  chan func() *result
 	ctx     context.Context
-	done    chan struct{}
+	done    chan *result
 }
 
 func newPool(w int, ctx context.Context) *pool {
 	return &pool{
 		workers: w,
-		taskCh:  make(chan func() result),
-		done:    make(chan struct{}),
+		taskCh:  make(chan func() *result),
+		done:    make(chan *result),
 		ctx:     ctx,
 		wg:      new(sync.WaitGroup),
 		once:    new(sync.Once),
@@ -72,9 +67,23 @@ func (p *pool) work() {
 			if !ok {
 				return
 			}
-			resp := v()
-			fmt.Println(resp)
-			p.done <- struct{}{}
+
+			ctx, cancel := context.WithTimeout(context.Background(), 2)
+
+			go func() {
+				resp := v()
+				p.done <- resp
+			}()
+
+			for {
+				select {
+				case <-ctx.Done():
+					cancel()
+					//resp.resp = "time out"
+				case resp := <-p.done:
+					resp.resp = "done"
+				}
+			}
 		}
 	}
 }
@@ -98,30 +107,13 @@ func main() {
 
 	go func() {
 		for i := 0; i < 50; i++ {
-			resp := result{
+			resp := &result{
 				id: i,
 			}
 
-			p.taskCh <- func() result {
-				ctx2, cancel2 := context.WithTimeout(context.Background(), 3)
-				defer cancel2()
-
-				go func() {
-					for {
-						select {
-						case <-p.ctx.Done():
-							return
-						case <-ctx2.Done():
-							resp.resp = "time out"
-						case <-p.done:
-							resp.resp = "done"
-						}
-					}
-
-				}()
-
+			p.taskCh <- func() *result {
 				//模拟超时
-				time.Sleep(time.Duration(rand.Intn(1)+1) * time.Second)
+				time.Sleep(time.Duration(rand.Intn(10)+1) * time.Second)
 				return resp
 			}
 		}
