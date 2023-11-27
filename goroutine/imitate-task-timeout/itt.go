@@ -15,7 +15,6 @@ import (
 type result struct {
 	resp string
 	id   int
-	ctx  context.Context
 }
 
 type pool struct {
@@ -46,17 +45,19 @@ func (p *pool) start() *sync.WaitGroup {
 		go p.work()
 	}
 
-	go func() {
-		for {
-			select {
-			case <-p.ctx.Done():
-				return
-			case <-p.done:
-			case <-time.After(time.Second * 2):
-				fmt.Println("time out")
-			}
-		}
-	}()
+	//go func() {
+	//	for {
+	//		select {
+	//		case <-p.ctx.Done():
+	//			return
+	//		case <-p.done:
+	//		case <-time.After(time.Second * 2):
+	//			fmt.Println("time out")
+	//		default:
+	//			fmt.Println("gn >>> ", runtime.NumGoroutine())
+	//		}
+	//	}
+	//}()
 
 	return p.wg
 }
@@ -88,10 +89,6 @@ func (p *pool) wait() {
 	p.wg.Wait()
 }
 
-func (p *pool) addTask(task func() result) {
-	p.taskCh <- task
-}
-
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -104,83 +101,32 @@ func main() {
 			resp := result{
 				id: i,
 			}
-			p.addTask(func() result {
 
-				time.Sleep(time.Duration(rand.Intn(20)+1) * time.Second)
+			p.taskCh <- func() result {
+				ctx2, cancel2 := context.WithTimeout(context.Background(), 3)
+				defer cancel2()
+
+				go func() {
+					for {
+						select {
+						case <-p.ctx.Done():
+							return
+						case <-ctx2.Done():
+							resp.resp = "time out"
+						case <-p.done:
+							resp.resp = "done"
+						}
+					}
+
+				}()
+
+				//模拟超时
+				time.Sleep(time.Duration(rand.Intn(1)+1) * time.Second)
 				return resp
-			})
+			}
 		}
 		p.stop()
 	}()
 
 	job.Wait()
-
-	//var workers = 5
-	//var wg sync.WaitGroup
-	//var taskCh = make(chan int, 1)
-	//var done = make(chan int)
-	//
-	//ctx, cancel := context.WithCancel(context.Background())
-	//defer cancel()
-	//
-	//wg.Add(workers)
-	//for i := 0; i < workers; i++ {
-	//	go func() {
-	//		go func() {
-	//			defer wg.Done()
-	//			for {
-	//				select {
-	//				case <-ctx.Done():
-	//					return
-	//				case v, ok := <-taskCh:
-	//					if !ok {
-	//						return
-	//					}
-	//
-	//					task(v)
-	//					done <- 1
-	//				}
-	//			}
-	//		}()
-	//	}()
-	//}
-	//
-	//go func() {
-	//	for {
-	//		select {
-	//		case <-ctx.Done():
-	//			return
-	//		case <-done:
-	//			lock.Lock()
-	//			to = false
-	//			lock.Unlock()
-	//		case <-time.After(time.Second * 3):
-	//			lock.Lock()
-	//			to = true
-	//			lock.Unlock()
-	//			fmt.Println("time out ", runtime.NumGoroutine())
-	//		}
-	//	}
-	//}()
-	//
-	//go func() {
-	//	for i := 0; i < 50; i++ {
-	//		taskCh <- i
-	//	}
-	//	close(taskCh)
-	//}()
-	//
-	//wg.Wait()
-	//
-	//fmt.Printf("总共完整了: %d个任务", counter)
 }
-
-//func task(i int) {
-//	time.Sleep(time.Duration(rand.Intn(10)+1) * time.Second)
-//	lock.Lock()
-//	if !to {
-//		fmt.Printf("task %d done\n", i)
-//		counter++
-//	}
-//	lock.Unlock()
-//}
