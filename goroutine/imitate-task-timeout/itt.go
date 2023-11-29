@@ -37,17 +37,17 @@ func newPool(w int, ctx context.Context) *pool {
 	}
 }
 
-func (p *pool) start() *sync.WaitGroup {
+func (p *pool) start() {
 	p.wg.Add(p.workers)
 	for i := 0; i < p.workers; i++ {
 		go p.work()
 	}
 
-	return p.wg
+	//return p.wg
 }
 
 func (p *pool) work() {
-	defer p.wg.Done()
+	//defer p.wg.Done()
 	for {
 		select {
 		case <-p.ctx.Done():
@@ -59,7 +59,6 @@ func (p *pool) work() {
 			}
 
 			resp := v()
-			resp.resp = "done"
 			p.done <- resp
 		}
 	}
@@ -81,11 +80,13 @@ func (p *pool) addTask(task func() *result) {
 
 func main() {
 	var wg sync.WaitGroup
+	wg.Add(1)
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	p := newPool(10, ctx)
-	job := p.start()
+	p.start()
 	var f int
 
 	go func() {
@@ -103,7 +104,6 @@ func main() {
 		}
 	}()
 
-	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		for {
@@ -114,6 +114,7 @@ func main() {
 				if !ok {
 					return
 				}
+
 				fmt.Printf("Job #%d is %s\n", result.id, result.resp)
 			}
 		}
@@ -123,23 +124,24 @@ func main() {
 		for i := 0; i < 50; i++ {
 			resp := &result{id: i}
 			task := func() *result {
-				ctx1, cancel1 := context.WithTimeout(context.Background(), 2)
+				ctx1, cancel1 := context.WithTimeout(context.Background(), 3*time.Second)
 				defer cancel1()
-
-				time.Sleep(time.Duration(rand.Intn(10)+1) * time.Second)
 
 				select {
 				case <-ctx1.Done():
 					resp.resp = "time out"
+
+				case <-time.After(time.Duration(rand.Intn(10)+1) * time.Second):
+					resp.resp = "done"
 				}
 
 				return resp
+
 			}
 			p.addTask(task)
 		}
 		p.stop()
 	}()
 
-	job.Wait()
 	wg.Wait()
 }
