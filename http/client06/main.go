@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"math/rand"
 	"net/http"
 	"runtime"
 	"sync"
@@ -15,8 +14,6 @@ var (
 )
 
 func main() {
-
-	rand.Seed(time.Now().Unix())
 
 	links := []string{
 		"https://github.com/kubernetes/kubernetes",
