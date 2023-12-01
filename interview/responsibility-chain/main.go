@@ -2,111 +2,80 @@ package main
 
 import "fmt"
 
-type section interface {
-	execute(*task)
-	setNext(section)
+// 1.定义接口1
+// 2.定义请求结构体，该请求需要实现接口1
+// 3.定义处理请求的接口2，该接口2方法参数必须是请求结构体
+// 4.定义实现接口2的处理结构体，该结构体字段类型必须是接口2类型
+// 5.创建责任链，从最后一个处理者开始顺序定义
+// 6.提交请求，从第一个处理者开始
+
+type Request interface {
+	GetName() string
 }
 
-type choose struct {
-	next section
+// 请求实现
+
+type ConcreteRequest struct {
+	name string
+	age  int
 }
 
-func (c *choose) execute(t *task) {
-	if t.Selected {
-		fmt.Println("already choose")
-		c.next.execute(t)
+func (c *ConcreteRequest) GetName() string {
+	return c.name
+}
+func (c *ConcreteRequest) GetAge() int {
+	return c.age
+}
+
+// 定义处理器接口
+
+type Handler interface {
+	Handle(Request)
+}
+
+// 处理器实现
+
+type ConcreteHandler1 struct {
+	next Handler // 定义下一个处理器
+}
+
+func (h *ConcreteHandler1) Handle(r Request) {
+	if r.GetName() == "handler1" {
+		// 处理逻辑
 		return
 	}
 
-	fmt.Println("choose ok")
-	t.Selected = true
-	c.next.execute(t) //调用下一个结构体的execute如pay, 对task任务继续逻辑判断运行
+	// 传递给下一处理器
+	if h.next != nil {
+		h.next.Handle(r)
+	}
 }
 
-func (c *choose) setNext(next section) {
-	c.next = next
+// 处理器实现
+
+type ConcreteHandler2 struct {
+	next Handler // 定义下一个处理器
 }
 
-type pay struct {
-	next section
-}
-
-func (p *pay) execute(t *task) {
-	if t.Paid {
-		fmt.Println("already paid")
-		p.next.execute(t)
+func (h *ConcreteHandler2) Handle(r Request) {
+	if r.GetName() == "handler2" {
+		// 处理逻辑
+		fmt.Println("ok")
 		return
 	}
 
-	fmt.Println("paid ok")
-	t.Paid = true
-	p.next.execute(t)
-}
-
-func (p *pay) setNext(next section) {
-	p.next = next
-}
-
-type take struct {
-	next section
-}
-
-func (ta *take) execute(t *task) {
-	if t.HasLeft {
-		fmt.Println("already take")
-		ta.next.execute(t)
-		return
+	// 传递给下一处理器
+	if h.next != nil {
+		h.next.Handle(r)
 	}
-
-	fmt.Println("take ok")
-	t.HasLeft = true
-	ta.next.execute(t)
 }
 
-func (ta *take) setNext(next section) {
-	ta.next = next
-}
-
-type finised struct {
-	next section
-}
-
-func (f *finised) execute(t *task) {
-	if t.Finised {
-		fmt.Println("already finished")
-		f.next.execute(t)
-		return
-	}
-
-	fmt.Println("finished ok", t.Finised)
-}
-
-func (f *finised) setNext(next section) {
-	f.next = next
-}
-
-type task struct {
-	name     string
-	HasLeft  bool
-	Paid     bool
-	Selected bool
-	Finised  bool
-}
-
-// 责任链替代if地狱-购物为例：挑选商品-付款-带走-完成购物
 func main() {
+	// 创建责任链
+	handler2 := &ConcreteHandler2{}
+	handler1 := &ConcreteHandler1{next: handler2}
 
-	f := &finised{}
-
-	t := &take{}
-	t.setNext(f)
-
-	p := &pay{}
-	p.setNext(t)
-
-	c := &choose{}
-	c.setNext(p)
-
-	task := &task{name: "shopping"}
-	c.execute(task)
+	// 提交请求
+	request := &ConcreteRequest{"handler2", 31}
+	handler1.Handle(request)
 }

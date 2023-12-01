@@ -337,7 +337,6 @@ type request struct {
 	result   chan *result
 	workers  int
 	finished chan struct{}
-	once     *sync.Once
 	wg       *sync.WaitGroup
 	lock     *sync.Mutex
 }
@@ -348,7 +347,6 @@ func newRequest(ctx context.Context, workers int) *request {
 		task:     make(chan string),
 		result:   make(chan *result),
 		finished: make(chan struct{}),
-		once:     new(sync.Once),
 		wg:       new(sync.WaitGroup),
 		lock:     new(sync.Mutex),
 		workers:  workers,
