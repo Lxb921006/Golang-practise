@@ -11,9 +11,6 @@ import (
 )
 
 func main() {
-
-	rand.Seed(time.Now().Unix())
-
 	pool := tunny.NewFunc(10, func(payload interface{}) interface{} {
 		var result []byte
 

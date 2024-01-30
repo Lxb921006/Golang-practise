@@ -61,7 +61,7 @@ func chat(payload map[string]interface{}) {
 	}
 
 	// 构造请求URL
-	url := "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/eb-instant?access_token=" + accessToken
+	url := "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/completions_pro?access_token=" + accessToken
 
 	// 构造请求体
 	payloadBytes, err := json.Marshal(payload)
@@ -100,7 +100,7 @@ func main() {
 		"messages": []map[string]string{
 			{
 				"role":    "user",
-				"content": "你现在能画图了吗？如果可以请帮我画一张二次元美女图片",
+				"content": "现在是几月几号几点几分几秒",
 			},
 		},
 		"stream": true,

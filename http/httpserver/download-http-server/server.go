@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"time"
 )
 
@@ -18,11 +19,12 @@ func main() {
 }
 
 type Resp struct {
-	Msg    string                 `json:"msg"`
-	Status int                    `json:"status"`
-	Date   string                 `json:"date"`
-	Detail map[string]interface{} `json:"detail,omitempty"`
-	Br     []byte                 `json:"br,omitempty"`
+	Msg    string                   `json:"msg"`
+	Status int                      `json:"status"`
+	Date   string                   `json:"date"`
+	Detail map[string]interface{}   `json:"detail,omitempty"`
+	Data   []map[string]interface{} `json:"data,omitempty"`
+	Br     []byte                   `json:"br,omitempty"`
 }
 
 func (r *Resp) M(msg string, code int) (b []byte) {
@@ -53,16 +55,16 @@ func (r *Resp) R(writer http.ResponseWriter) error {
 }
 
 func httpServer() {
-	log.Println("http server :8092 listening...")
+	log.Println("http server :8099 listening...")
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/download", download)
 	mux.HandleFunc("/upload", upload)
 	mux.HandleFunc("/content", sendFileContent)
 	mux.HandleFunc("/aws-cdn-refresh", awsCdnRefresh)
-
+	mux.HandleFunc("/wx-data", wxGetData)
 	listen := &http.Server{
-		Addr:              ":8092",
+		Addr:              ":8099",
 		Handler:           mux,
 		ReadHeaderTimeout: time.Duration(10) * time.Second,
 	}
@@ -70,6 +72,52 @@ func httpServer() {
 	if err := listen.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf(err.Error())
 	}
+}
+
+func wxGetData(resp http.ResponseWriter, req *http.Request) {
+	var data = []map[string]interface{}{
+		{
+			"id":   1,
+			"name": "lxb",
+			"age":  31,
+		},
+		{
+			"id":   2,
+			"name": "lqm",
+			"age":  18,
+		},
+		{
+			"id":   3,
+			"name": "lyy",
+			"age":  17,
+		},
+	}
+
+	var r Resp
+	if req.Method != "GET" {
+		b := r.M("请求方法错误", 10003)
+		resp.Write(b)
+		return
+	}
+
+	log.Println(req.RequestURI)
+
+	f := req.URL.Query()
+	var num = f.Get("num")
+	li, _ := strconv.Atoi(num)
+	if li < len(data) {
+		data = data[:li]
+	}
+
+	r = Resp{
+		Msg:    "ok",
+		Status: 10000,
+		Data:   data,
+	}
+	b := r.K(&r)
+
+	resp.Write(b)
+
 }
 
 func upload(writer http.ResponseWriter, request *http.Request) {
@@ -89,11 +137,13 @@ func upload(writer http.ResponseWriter, request *http.Request) {
 
 	file, header, _ := request.FormFile("file")
 
+	fmt.Println("header >>> ", header)
 	// 获取额外的参数
 	value := request.Form.Get("user")
+	fileName := request.Form.Get("fileName")
 	fmt.Println(value)
 
-	saveDir := filepath.Join("C:\\Users\\Administrator\\Desktop\\test", header.Filename)
+	saveDir := filepath.Join("C:\\Users\\Administrator\\Desktop\\update", fileName)
 	fc, _ := os.Create(saveDir)
 
 	defer fc.Close()
@@ -137,7 +187,7 @@ func download(writer http.ResponseWriter, request *http.Request) {
 }
 
 func sendFileHandle(file string, w http.ResponseWriter) (err error) {
-	fp := filepath.Join("C:\\Users\\Administrator\\Desktop", file)
+	fp := filepath.Join("D:\\soft", file)
 	f, err := os.Open(fp)
 	if err != nil {
 		return err

@@ -1,7 +1,8 @@
 package main
 
 import (
-	"log"
+	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/go-redis/redis"
@@ -12,7 +13,7 @@ var rdPool *redis.Client
 // 在主函数(也就是main())执行之前就已经执行
 func init() { //初始化
 	rdPool = redis.NewClient(&redis.Options{
-		Addr:         "43.156.170.122:6378",
+		Addr:         "43.153.55.148:6377",
 		DB:           10,
 		MinIdleConns: 5,
 		Password:     "chatai",
@@ -25,29 +26,51 @@ func init() { //初始化
 }
 
 func main() {
-	//redis连接池使用
+	time.Now().Format(time.DateTime)
+	setQuota()
+}
 
-	var data1 = make(map[string]string)
+func setInvite() {
+	var initData = []string{"lxb"}
+	var data = map[string][]string{
+		"user": initData,
+	}
+	b, err := json.Marshal(&data)
+	err = rdPool.HSet("invite", "ogR3E62jXXJMbVcImRqMA1gTSegM", b).Err()
+	fmt.Println("setInvite HSet err >>>", err)
 
-	log.Printf("type = %s", data1["result"])
+	str, err := rdPool.HGet("invite", "ogR3E62jXXJMbVcImRqMA1gTSegM").Result()
+	fmt.Println("setInvite HGet err >>>", str, err)
 
-	//con := rdPool.Options().PoolSize
-	//
-	//fmt.Println("con=", con)
-	//
-	//s, e := rdPool.HSet("aaaaaa", "name", "lxb").Result()
-	//
-	//fmt.Println("s = ", s)
+	defer rdPool.Close()
+}
 
-	result, err := rdPool.HGet("prcessstatus", "running").Result()
-	if err != nil {
-		log.Println(err)
-		return
+func setQuota() {
+	ds, err := rdPool.Get("openia").Result()
+	fmt.Println("ds >>> ", ds, ", err >>>", err)
+
+	var data = map[string]int{
+		"claude":   976,
+		"gemini":   960,
+		"bd":       972,
+		"time":     1706174482,
+		"add":      2,
+		"invite":   4,
+		"finished": 2,
 	}
 
-	data1["result"] = result
+	b, _ := json.Marshal(&data)
 
-	log.Println(data1)
+	err = rdPool.HSet("quota", "ogR3E62jXXJMbVcImRqMA1gTSegM", b).Err()
+	fmt.Println("err >>>", err)
+
+	var di = make(map[string]int, 1)
+	b1, err := rdPool.HGet("quota", "ogR3E62jXXJMbVcImRqMA1gTSegM").Result()
+	_ = json.Unmarshal([]byte(b1), &di)
+	fmt.Println("di >>> ", di, ", err >>>", err)
+
+	k, err := rdPool.HExists("quota", "ogR3E62jXXJMbVcImRqMA1gTSegM").Result()
+	fmt.Println("k >>> ", k, ", err >>>", err)
 
 	defer rdPool.Close()
 }

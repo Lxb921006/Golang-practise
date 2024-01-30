@@ -27,6 +27,7 @@ func main() {
 	fmt.Println("时间戳=", t.Unix())     //Unix获取是的秒数
 	fmt.Println("时间戳=", t.UnixNano()) //Unix获取是的纳秒数，
 	te := t.Unix()
+	fmt.Println("te>>>>", te)
 	tet := time.Unix(te, 0).Format("2006-01-02 15:04:05") //时间戳转时间
 	// tef := tet.Format("2006-01-02 15:04:05")
 	fmt.Println("tef=", tet)
