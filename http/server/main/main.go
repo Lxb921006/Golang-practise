@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"html"
 	"net/http"
+	"time"
 )
 
 func SayHello(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
+	time.Sleep(time.Second * 15)
+	fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.Method))
 
 }
 

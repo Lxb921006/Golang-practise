@@ -29,6 +29,7 @@ func main() {
 		Age:   30,
 		hobby: "bas",
 	}
+	fmt.Println("----------Dispatch03---------")
 	Dispatch03(&s01)
 	fmt.Println("s01=", s01) //{lxb 18}
 	fmt.Println("----------Dispatch04---------")
@@ -43,8 +44,10 @@ func Dispatch03(v interface{}) {
 	//v1.Elem()相当于取到(*s01)
 	fmt.Println("v1=", v1.Elem()) //{lxb 30}
 	v2 := v1.Elem().Field(1)      // Age的值30
-	v2.SetInt(18)                 // 修改Age的值为18
-	fmt.Println("v2=", v2)        //18
+	v2.SetInt(18)
+
+	// 修改Age的值为18
+	fmt.Println("v2=", v2) //18
 
 	v3 := v1.Elem().Method(0)
 	if v3.IsValid() {
@@ -100,6 +103,7 @@ func Dispatch04(v interface{}) {
 
 func Dispatch05(v interface{}) {
 	t1 := reflect.TypeOf(v)
+	fmt.Println("t1.Elem().Field(0).Name = ", t1.Elem().Field(0).Name)
 	v1 := reflect.ValueOf(v)
 
 	k1 := v1.Kind()
@@ -108,8 +112,8 @@ func Dispatch05(v interface{}) {
 		return
 	}
 
-	name := v1.Elem().FieldByName("Name").Interface().(string)
-	fmt.Println("name ===>", name)
+	// name := v1.Elem().FieldByName("Name").Interface().(string)
+	// fmt.Println("name ===>", name)
 
 	valNum := t1.Elem().NumField()
 	for i := 0; i < valNum; i++ {
@@ -129,10 +133,10 @@ func Dispatch05(v interface{}) {
 		fmt.Printf("method %d, name=%v, arg num = %d\n", i, t1.Elem().Method(i).Name, t1.Elem().Method(i).Type.NumOut())
 	}
 
-	v2 := v1.Interface().(*Student01)
+	// v2 := v1.Interface().(*Student01)
 
 	v1.Elem().FieldByName("Name").SetString("lqm")
 
-	fmt.Println("v2 = ", v2.Name)
+	// fmt.Println("v2 = ", v2.Name)
 
 }

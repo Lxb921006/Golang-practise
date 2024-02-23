@@ -36,8 +36,8 @@ func MoviesPackage() {
 	newElem = reflect.New(newType)            //返回reflect.Value, 新申请的typ类型的零值指针,指向的地址是*Movies的地址,但是没有数据
 	fmt.Printf("newElem type= %T\n", newElem) //reflect.Value
 
-	newMovies = newElem.Interface().(*Movies)
-	fmt.Printf("newMovies type =%T\n", newMovies)
+	// newMovies = newElem.Interface().(*Movies)
+	// fmt.Printf("newMovies type =%T\n", newMovies)
 
 	// newMovies.Name = "lqm"
 	// newMovies.Score = 100

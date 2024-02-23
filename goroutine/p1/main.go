@@ -9,37 +9,35 @@ import (
 func main() {
 	c1 := make(chan string)
 	c2 := make(chan string)
-
-	go func() {
-		for {
-			c1 <- "lxb"
-			time.Sleep(time.Second / 2)
-		}
-	}()
-
-	go func() {
-		for {
-			v, ok := <-c1
-			if !ok {
-				break
+	for i := 0; i < 10; i++ {
+		go func() {
+			for {
+				c1 <- "lxb"
+				time.Sleep(time.Second / 2)
 			}
-			c2 <- v + "lqm"
+		}()
+	}
+
+	go func() {
+		for {
+			d := <-c1
+			c2 <- d + "lqm"
 			time.Sleep(time.Second * 2)
 		}
 	}()
 
-	// for {
-	// 	select {
-	// 	case c11 := <-c1:
-	// 		fmt.Println(c11)
-	// 	case c22 := <-c2:
-	// 		fmt.Println(c22)
-	// 	}
-	// }
-
 	for {
-		fmt.Println(<-c1)
-		fmt.Println(<-c2)
+		select {
+		case c11 := <-c1:
+			// time.Sleep(time.Second * 5)
+			fmt.Println(c11)
+		case c22 := <-c2:
+			fmt.Println(c22)
+		}
 	}
+	// for {
+	// 	fmt.Println(<-c1)
+	// 	fmt.Println(<-c2)
+	// }
 	// 当第一次获取c1,c2的值,由于c2管道在写入数据后要等待2秒，此时c1已经写入数据，但是没有还没有被获取，所以也会跟着阻塞到2秒，为了不影响c1的运行需要用到select
 }

@@ -20,4 +20,5 @@ func NewData() *Data1 {
 // 如果data package需要调用data2的ApiPack()需要创建一个接口
 func RequireDta2(api api.Api) {
 	api.ApiPack()
+
 }

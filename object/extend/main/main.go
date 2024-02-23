@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-//将Student01和Student02共有的字段放到Student里，这个结构体就匿名结构体
+// 将Student01和Student02共有的字段放到Student里，这个结构体就匿名结构体
 type Student struct {
 	Name    string
 	Age     int
@@ -27,7 +27,7 @@ type Student02 struct {
 	Gender  string
 }
 
-//将Student01和Student02共有的方法也绑定到*Student
+// 将Student01和Student02共有的方法也绑定到*Student
 func (stu *Student) StuInfo() {
 	fmt.Printf("name=%v, age=%d, socre=%f\n", stu.Name, stu.Age, stu.socre)
 }

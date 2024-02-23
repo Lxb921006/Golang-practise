@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"runtime"
+	"time"
 )
 
 type Job struct {
@@ -39,6 +40,7 @@ func main() {
 	var id int
 	// 循环创建job，输入到管道
 	for {
+
 		id++
 		// 生成随机数
 		r_num := rand.Int()
@@ -48,6 +50,7 @@ func main() {
 		}
 		jobChan <- job
 		fmt.Println("协程数量===============", runtime.NumGoroutine())
+		time.Sleep(time.Second * 2)
 	}
 }
 

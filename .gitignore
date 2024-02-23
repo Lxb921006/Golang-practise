@@ -10,6 +10,12 @@ main
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
-
+*.gz
+.DS_Store
 # Dependency directories (remove the comment below to include it)
 # vendor/
+main
+.vscode
+*.o
+*.h
+.idea

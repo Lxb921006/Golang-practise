@@ -29,8 +29,14 @@ func (r *RequestPkg) PostRequest(httpUrl, header, params string) (res map[string
 	case "application/json":
 		b := r.FormatParams(params)
 		resp, err = http.Post(httpUrl, header, bytes.NewReader(b))
+		if err != nil {
+			return res, err
+		}
 	case "application/x-www-form-urlencoded", "multipart/form-data":
 		resp, err = http.Post(httpUrl, header, strings.NewReader(params))
+		if err != nil {
+			return res, err
+		}
 	default:
 		err = errors.New("invalid header")
 		return
@@ -40,7 +46,7 @@ func (r *RequestPkg) PostRequest(httpUrl, header, params string) (res map[string
 
 	data, _ := ioutil.ReadAll(resp.Body)
 	json.Unmarshal(data, &res)
-	if err != nil || resp.StatusCode != 200 {
+	if err != nil {
 		fmt.Println("request err = ", err)
 		return
 	}
@@ -67,8 +73,8 @@ func (r *RequestPkg) GetRequest(httpUrl string) (res map[string]interface{}, err
 
 func main() {
 	r := &RequestPkg{}
-	httpUrl := "http://127.0.0.1:9292/login"
-	data := "username=lxb&password=123322"
+	httpUrl := "http://127.0.0.1:9293/login"
+	data := "user=lxb&password=123322"
 	header := "application/x-www-form-urlencoded"
 
 	resp, err := r.PostRequest(httpUrl, header, data)

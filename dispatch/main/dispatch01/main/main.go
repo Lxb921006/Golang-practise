@@ -37,7 +37,8 @@ func main() {
 
 func Dispatch01(v interface{}) {
 	t1 := reflect.TypeOf(v)
-	fmt.Println("t1= ", t1) //main.Student
+	fmt.Println("t1= ", t1)
+	//main.Student
 
 	k1 := t1.Kind() //struct
 

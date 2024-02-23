@@ -2,20 +2,57 @@ package main
 
 import (
 	"fmt"
-	"time"
+	"os"
+	"path/filepath"
+	"sync"
+)
+
+// 限制goroutine数量
+var (
+	wg    sync.WaitGroup
+	c     = make(chan int, 20)
+	root  = "D:/project/gin/src/github.com/Lxb921006/Golang-practise/.git"
+	total = 0
+	count = make(chan int)
+	stop  = make(chan struct{})
 )
 
 func main() {
-	c := make(chan int, 5)
 
-	for i := 0; i < 10; i++ {
-		go func(i int) {
-			c <- i
-			fmt.Println(time.Now().UnixNano())
+	go func() {
+		for {
+			select {
+			case <-stop:
+				return
+			case <-count:
+				total++
+				fmt.Println(total)
+			}
+		}
+	}()
 
-			time.Sleep(time.Second)
-			<-c
-		}(i)
+	for i := 0; i < 10000; i++ {
+		c <- 1
+		wg.Add(1)
+		go recv(c)
 	}
+
+	wg.Wait()
+	stop <- struct{}{}
+	fmt.Println("finished!!!", total)
+}
+
+func recv(c chan int) {
+
+	defer wg.Done()
+
+	filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			count <- 1
+			<-c
+		}
+		return nil
+	})
+	// time.Sleep(time.Second * 3)
 
 }

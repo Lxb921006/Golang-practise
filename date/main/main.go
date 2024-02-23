@@ -27,6 +27,7 @@ func main() {
 	fmt.Println("时间戳=", t.Unix())     //Unix获取是的秒数
 	fmt.Println("时间戳=", t.UnixNano()) //Unix获取是的纳秒数，
 	te := t.Unix()
+	fmt.Println("te>>>>", te)
 	tet := time.Unix(te, 0).Format("2006-01-02 15:04:05") //时间戳转时间
 	// tef := tet.Format("2006-01-02 15:04:05")
 	fmt.Println("tef=", tet)
@@ -48,9 +49,11 @@ func main() {
 	fmt.Println("n2-2=", &n2)
 	fmt.Println("ptr-2=", ptr)
 	fmt.Println("n2-2=", n2)
+	s := time.Now().Add(time.Hour * time.Duration(11)).Format("2006-01-02 15:04:05")
+	fmt.Println("11小时之前 >>> ", s)
 }
 
-//计算函数的执行时间
+// 计算函数的执行时间
 type costRun func(n int)
 
 func test2(f costRun, n int) {
