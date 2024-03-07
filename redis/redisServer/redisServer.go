@@ -45,7 +45,7 @@ func (r *Rds) CheckInvite(userid string) (err error) {
 		return errors.New("已被限制访问")
 	}
 
-	var data map[string][]string
+	var data = make(map[string][]string)
 	check, err := r.conn.HGet("invite", r.openid).Result()
 	err = json.Unmarshal([]byte(check), &data)
 	if err != nil {
@@ -97,7 +97,7 @@ func (r *Rds) updateInviteDate() (err error) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
-	var data map[string]int
+	var data = make(map[string]int)
 	quota, err := r.conn.HGet("quota", r.openid).Result()
 	err = json.Unmarshal([]byte(quota), &data)
 	if err != nil {
@@ -142,7 +142,7 @@ func (r *Rds) Invite(userid string) (i int, err error) {
 		return 0, errors.New("已被限制访问")
 	}
 
-	var data map[string]int
+	var data = make(map[string]int)
 	quota, err := r.conn.HGet("quota", r.openid).Result()
 	err = json.Unmarshal([]byte(quota), &data)
 	if err != nil {
@@ -151,7 +151,7 @@ func (r *Rds) Invite(userid string) (i int, err error) {
 
 	invite, ok := data["invite"]
 	date := data["time"]
-	claude := data["claude"]
+	chatgpt := data["chatgpt"]
 	bd := data["bd"]
 	gemini := data["gemini"]
 	isAdd := data["add"]
@@ -172,8 +172,8 @@ func (r *Rds) Invite(userid string) (i int, err error) {
 	if invite < 5 && !r.isNextDay(nft, rft) {
 		invite++
 		if invite == 5 && isAdd == 2 {
-			claude++
-			data["claude"] = claude
+			chatgpt++
+			data["chatgpt"] = chatgpt
 			bd++
 			data["bd"] = bd
 			gemini++
@@ -236,9 +236,9 @@ func (r *Rds) SetQuota() (err error) {
 	isExists := r.CheckKey("quota")
 	if !isExists {
 		var data = map[string]int{
-			"claude": 0,
-			"gemini": 20,
-			"bd":     5,
+			"chatgpt": 0,
+			"gemini":  20,
+			"bd":      5,
 		}
 
 		b, err := json.Marshal(&data)
@@ -277,7 +277,7 @@ func (r *Rds) UpdateQuota(model string) (err error) {
 		return errors.New("已被限制访问")
 	}
 
-	var data map[string]int
+	var data = make(map[string]int)
 	quota, err := r.conn.HGet("quota", r.openid).Result()
 	err = json.Unmarshal([]byte(quota), &data)
 	if err != nil {

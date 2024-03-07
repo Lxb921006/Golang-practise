@@ -55,7 +55,7 @@ func (r *Resp) R(writer http.ResponseWriter) error {
 }
 
 func httpServer() {
-	log.Println("http server :8099 listening...")
+	log.Println("http server :8092 listening...")
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/download", download)
@@ -64,7 +64,7 @@ func httpServer() {
 	mux.HandleFunc("/aws-cdn-refresh", awsCdnRefresh)
 	mux.HandleFunc("/wx-data", wxGetData)
 	listen := &http.Server{
-		Addr:              ":8099",
+		Addr:              ":8092",
 		Handler:           mux,
 		ReadHeaderTimeout: time.Duration(10) * time.Second,
 	}
@@ -248,7 +248,7 @@ func awsCdnRefresh(writer http.ResponseWriter, request *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(10))
 	defer cancel()
 
-	out, err := exec.CommandContext(ctx, "sh", "/root/aws_cdn_refresh.sh", item, path).Output()
+	out, err := exec.CommandContext(ctx, "sh", "/root/shellscript/aws_cdn_refresh.sh", item, path).Output()
 	if err != nil {
 		b := resp.M(string(out), 10001)
 		writer.Write(b)

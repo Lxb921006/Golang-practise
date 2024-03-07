@@ -12,11 +12,13 @@ type Message struct {
 }
 
 // 定义MessageService接口
+
 type MessageService interface {
 	Send(message Message)
 }
 
 // 实现MessageService接口
+
 type EmailService struct{}
 
 func (e *EmailService) Send(message Message) {
@@ -24,6 +26,7 @@ func (e *EmailService) Send(message Message) {
 }
 
 // 定义Greeter接口
+
 type Greeter struct {
 	message Message
 	service MessageService
@@ -34,6 +37,7 @@ func (g *Greeter) Greet() {
 }
 
 // 实现NewGreeter函数，用于根据参数创建Greeter实例
+
 func NewGreeter(message Message, service MessageService) (*Greeter, error) {
 	// 验证service是否支持MessageService接口
 	if reflect.TypeOf(service).Kind() != reflect.TypeOf(&EmailService{}).Kind() {

@@ -50,7 +50,7 @@ func setQuota() {
 	fmt.Println("ds >>> ", ds, ", err >>>", err)
 
 	var data = map[string]int{
-		"claude":   976,
+		"chatgpt":  976,
 		"gemini":   960,
 		"bd":       972,
 		"time":     1706174482,

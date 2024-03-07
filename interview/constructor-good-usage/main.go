@@ -2,7 +2,8 @@ package main
 
 import "fmt"
 
-// 优雅的构造函数写法
+// option模式
+
 type Person struct {
 	Name string
 	Tel  int

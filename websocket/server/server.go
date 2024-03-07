@@ -31,7 +31,7 @@ type WxLogin struct {
 }
 
 type QuotaInfo struct {
-	Claude   int `json:"claude"`
+	Chatgpt  int `json:"chatgpt"`
 	Gemini   int `json:"gemini"`
 	Bd       int `json:"bd"`
 	Invite   int `json:"invite"`
@@ -177,7 +177,7 @@ func processBaiDuData(data []byte, ws *websocket.Conn, messageType int) {
 }
 
 func bDWebsocketHandler(w http.ResponseWriter, r *http.Request) {
-	var msg map[string]interface{}
+	var msg = make(map[string]interface{})
 	var q = r.URL.Query()
 	log.Println("bd openid >>> ", q.Get("openid"))
 	if q.Get("openid") == "" {
@@ -222,7 +222,7 @@ func bDWebsocketHandler(w http.ResponseWriter, r *http.Request) {
 
 // 谷歌
 func geminiWebsocketHandler(w http.ResponseWriter, r *http.Request) {
-	var msg map[string]interface{}
+	var msg = make(map[string]interface{})
 	var q = r.URL.Query()
 	var openid = q.Get("openid")
 	log.Println("gemini openid >>> ", openid)
@@ -319,12 +319,12 @@ func processGeminiData(data []byte, ws *websocket.Conn, messageType int) {
 	}
 }
 
-// 克洛德
-func claudeWebsocketHandler(w http.ResponseWriter, r *http.Request) {
-	var msg map[string]interface{}
+// chatgpt
+func chatgptWebsocketHandler(w http.ResponseWriter, r *http.Request) {
+	var msg = make(map[string]interface{})
 	var q = r.URL.Query()
 	var openid = q.Get("openid")
-	log.Println("claude openid >>> ", openid)
+	log.Println("chatgpt openid >>> ", openid)
 	if q.Get("openid") == "" {
 		msg["esg"] = "openid不能为空"
 		p, _ := json.Marshal(&msg)
@@ -340,7 +340,7 @@ func claudeWebsocketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := rds.UpdateQuota("claude"); err != nil {
+	if err := rds.UpdateQuota("chatgpt"); err != nil {
 		msg["esg"] = err.Error()
 		p, _ := json.Marshal(&msg)
 		_, _ = w.Write(p)
@@ -362,19 +362,19 @@ func claudeWebsocketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("claude Received: %s", message)
+	log.Printf("chatgpt Received: %s", message)
 
-	if err := rds.UpdateQuota("claude"); err != nil {
+	if err := rds.UpdateQuota("chatgpt"); err != nil {
 		bt := []rune(err.Error())
-		log.Printf("claude ai limit >>> %s\n", err.Error())
+		log.Printf("chatgpt ai limit >>> %s\n", err.Error())
 		errorData(bt, conn, messageType)
 		return
 	}
 
-	chatClaude(conn, messageType, message, openid)
+	chatchatgpt(conn, messageType, message, openid)
 }
 
-func processClaudeData(data []byte, ws *websocket.Conn, messageType int) {
+func processchatgptData(data []byte, ws *websocket.Conn, messageType int) {
 	var resp Resp
 
 	err := json.Unmarshal(data, &resp)
@@ -390,11 +390,11 @@ func processClaudeData(data []byte, ws *websocket.Conn, messageType int) {
 			log.Println("Error during message writing:", err)
 			break
 		}
-		//time.Sleep(time.Millisecond / 70)
+		time.Sleep(time.Millisecond / 40)
 	}
 }
 
-func chatClaude(ws *websocket.Conn, messageType int, message []byte, openid string) {
+func chatchatgpt(ws *websocket.Conn, messageType int, message []byte, openid string) {
 	var wsData wsData
 	json.Unmarshal(message, &wsData)
 
@@ -402,7 +402,7 @@ func chatClaude(ws *websocket.Conn, messageType int, message []byte, openid stri
 		HandshakeTimeout: 300 * time.Second,
 	}
 
-	socketUrl := fmt.Sprintf("ws://127.0.0.1:10086/claude/%s/", openid)
+	socketUrl := fmt.Sprintf("ws://127.0.0.1:10086/chatgpt/%s/", openid)
 
 	conn, _, err := dial.Dial(socketUrl, nil)
 	if err != nil {
@@ -423,7 +423,7 @@ func chatClaude(ws *websocket.Conn, messageType int, message []byte, openid stri
 			log.Println("Error in receive:", err)
 			return
 		}
-		processClaudeData(msg, ws, messageType)
+		processchatgptData(msg, ws, messageType)
 	}
 
 }
@@ -541,8 +541,10 @@ func getQuota(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	log.Println("data >>> ", data)
+
 	var respData = QuotaInfo{
-		Claude:   data["claude"],
+		Chatgpt:  data["chatgpt"],
 		Gemini:   data["gemini"],
 		Bd:       data["bd"],
 		Invite:   data["invite"],
@@ -674,7 +676,7 @@ func main() {
 	log.Println("listening ::10087")
 	http.HandleFunc("/bd", bDWebsocketHandler)
 	http.HandleFunc("/gemini", geminiWebsocketHandler)
-	http.HandleFunc("/claude", claudeWebsocketHandler)
+	http.HandleFunc("/chatgpt", chatgptWebsocketHandler)
 	http.HandleFunc("/wx-login", getWxOpenId)
 	http.HandleFunc("/get-quota", getQuota)
 	http.HandleFunc("/invite", invite)
