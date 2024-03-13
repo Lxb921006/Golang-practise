@@ -396,7 +396,7 @@ func processchatgptData(data []byte, ws *websocket.Conn, messageType int) {
 
 func chatchatgpt(ws *websocket.Conn, messageType int, message []byte, openid string) {
 	var wsData wsData
-	json.Unmarshal(message, &wsData)
+	_ = json.Unmarshal(message, &wsData)
 
 	dial := websocket.Dialer{
 		HandshakeTimeout: 300 * time.Second,

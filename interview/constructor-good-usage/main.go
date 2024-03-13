@@ -38,4 +38,7 @@ func main() {
 		CallName("lxb"),
 		CallAge(31),
 	)
+
+	j := []byte(`{"name": 1}`)
+	fmt.Println(j)
 }

@@ -23,6 +23,7 @@ type UserRepository interface {
 }
 
 // 实现UserRepository接口
+
 type userRepository struct{}
 
 func (u userRepository) Find(id int) (*User, error) {
