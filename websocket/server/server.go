@@ -651,7 +651,7 @@ func upload(resp http.ResponseWriter, req *http.Request) {
 	// 获取额外的参数
 	fileName := req.Form.Get("fileName")
 
-	saveDir := filepath.Join("/data/chat", fileName)
+	saveDir := filepath.Join("/data/chat/web", fileName)
 	fc, _ := os.Create(saveDir)
 
 	defer fc.Close()
