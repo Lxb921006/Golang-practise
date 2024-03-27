@@ -17,49 +17,53 @@ type UserInfo struct {
 func main() {
 	//redis使用
 	rd := redis.NewClient(&redis.Options{
-		Addr: "101.35.143.86:6378",
-		DB:   0,
+		Addr:     "43.156.18.45:6378",
+		DB:       4,
+		Password: "chatai",
 	})
+
+	result, err2 := rd.Ping().Result()
+	fmt.Printf("result: %v, err2: %v", result, err2)
 
 	defer rd.Close()
 
-	rd.Del("username").Val()
-
-	rd.Del("username4").Val()
-
-	res := rd.LPush("username", "lxb", "lqm", "lyy", "lch").Val()
-
-	fmt.Println("res=", res)
-
-	fmt.Println(rd.LRange("username", 0, -1).Val())
-
-	// rd.HSet("username2", "name", "lxb")
-
-	// m := map[string]interface{}{
-	// 	"age":   30,
-	// 	"hobby": []string{"篮球", "足球"},
-	// }
-
-	res2 := rd.HMSet("username4", map[string]interface{}{
-		"age":   30,
-		"hobby": "篮球",
-	})
-
-	fmt.Println("res2 = ", res2)
-
-	d, err := rd.HMGet("username4", "age").Result()
-	fmt.Println("d = ", d[0].(string))
-	fmt.Println("errd = ", err)
-
-	// b, err := rd.Exists("username111").Result()
-
-	b, err := rd.Keys("username4").Result()
-
-	fmt.Println("b = ", b)
-	fmt.Println("berr = ", err)
-
-	res3, _ := rd.HGetAll("username4").Result()
-	fmt.Println("rd.HGetAll = ", res3)
+	//rd.Del("username").Val()
+	//
+	//rd.Del("username4").Val()
+	//
+	//res := rd.LPush("username", "lxb", "lqm", "lyy", "lch").Val()
+	//
+	//fmt.Println("res=", res)
+	//
+	//fmt.Println(rd.LRange("username", 0, -1).Val())
+	//
+	//// rd.HSet("username2", "name", "lxb")
+	//
+	//// m := map[string]interface{}{
+	//// 	"age":   30,
+	//// 	"hobby": []string{"篮球", "足球"},
+	//// }
+	//
+	//res2 := rd.HMSet("username4", map[string]interface{}{
+	//	"age":   30,
+	//	"hobby": "篮球",
+	//})
+	//
+	//fmt.Println("res2 = ", res2)
+	//
+	//d, err := rd.HMGet("username4", "age").Result()
+	//fmt.Println("d = ", d[0].(string))
+	//fmt.Println("errd = ", err)
+	//
+	//// b, err := rd.Exists("username111").Result()
+	//
+	//b, err := rd.Keys("username4").Result()
+	//
+	//fmt.Println("b = ", b)
+	//fmt.Println("berr = ", err)
+	//
+	//res3, _ := rd.HGetAll("username4").Result()
+	//fmt.Println("rd.HGetAll = ", res3)
 
 	// fmt.Println("username4=", rd.HMGet("username4", "age").Val())
 
