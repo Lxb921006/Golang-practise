@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/binary"
 	"encoding/json"
 	"io"
 	"log"
@@ -15,8 +14,8 @@ type ProxyBackend struct {
 }
 
 func closeNet(clientConn, remoteConn net.Conn) {
-	remoteConn.Close()
 	clientConn.Close()
+	remoteConn.Close()
 }
 
 func handleClient(clientConn net.Conn, server string, servers []map[string]string) {
@@ -38,18 +37,7 @@ func handleClient(clientConn net.Conn, server string, servers []map[string]strin
 		return
 	}
 
-	go func() {
-		defer closeNet(clientConn, remoteConn)
-		for {
-			// 读取消息长度
-			var msgLen uint32
-			err := binary.Read(clientConn, binary.LittleEndian, &msgLen)
-			if err == io.EOF {
-				log.Println(clientConn.RemoteAddr().String(), " client already disconnect")
-				return
-			}
-		}
-	}()
+	defer closeNet(clientConn, remoteConn)
 
 	go func() {
 		_, err = io.Copy(remoteConn, clientConn)
