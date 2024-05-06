@@ -55,6 +55,7 @@ func handleClient(clientConn net.Conn, server string, servers []map[string]strin
 }
 
 func main() {
+	log.Println("v1.0.1")
 	var pB ProxyBackend
 	file, err := os.ReadFile("servers.json")
 	if err != nil {

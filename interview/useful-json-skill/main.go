@@ -22,6 +22,7 @@ type Woman struct {
 	Skill  string `json:"skill"`
 	Hobby  string `json:"-"`                //这里的-表示在序列化的时候忽略这个字段
 	Weight int    `json:"weight,omitempty"` //这里表示这个字段是空值也就是没有赋值就在序列化的时候忽略它
+	IsGood bool   `json:"is_good,omitempty"`
 }
 
 type Respone struct {
@@ -36,6 +37,7 @@ type UnKnowFieldType struct {
 
 func main() {
 	// ----------------好用1------------------
+	fmt.Println("-----men-------")
 	m := new(Men)
 
 	m.Age = "31"
@@ -45,15 +47,18 @@ func main() {
 	fmt.Println(string(r1)) // output: {"name":"lxb","age":"31"}
 
 	// ----------------好用2------------------
-
+	fmt.Println("-----Woman-------")
 	w := new(Woman)
 	w.Name = "lqm"
 	w.Age = "31"
 	w.Skill = "Filial piety and kindness"
+	//w.Weight = 0
+	w.IsGood = false
 	r2, _ := json.Marshal(w)
 	fmt.Println(string(r2)) // output: {"name":"lqm","age":"31","skill":"Filial piety and kindness"}
 
 	// ----------------好用3------------------
+	fmt.Println("-----respone-------")
 	resp := new(Respone)
 
 	resp.Code = 200

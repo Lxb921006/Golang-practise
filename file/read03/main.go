@@ -1,13 +1,10 @@
 package main
 
 import (
-	"fmt"
-	"os"
+	"github.com/Lxb921006/Golang-practise/embedDir"
 )
 
 func main() {
-	file := "C:\\Users\\Administrator\\Desktop\\update\\天锐绿盾终端1.exe"
-	_, err := os.Stat(file)
-	fmt.Println(err)
 
+	embedDir.DirFuc()
 }
