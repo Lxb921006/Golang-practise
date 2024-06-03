@@ -63,6 +63,7 @@ func httpServer() {
 	mux.HandleFunc("/content", sendFileContent)
 	mux.HandleFunc("/aws-cdn-refresh", awsCdnRefresh)
 	mux.HandleFunc("/wx-data", wxGetData)
+	mux.HandleFunc("/change-time", changeTime)
 	listen := &http.Server{
 		Addr:              ":8092",
 		Handler:           mux,
@@ -72,6 +73,50 @@ func httpServer() {
 	if err := listen.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf(err.Error())
 	}
+}
+
+func changeTime(response http.ResponseWriter, request *http.Request) {
+	var resp Resp
+	if request.Method != "GET" {
+		b := resp.M("请求方法错误", 10003)
+		if _, err := response.Write(b); err != nil {
+			return
+		}
+
+		return
+	}
+
+	p := request.URL.Query()
+	date := p.Get("date")
+	sign := p.Get("sign")
+
+	if sign != "change" {
+		b := resp.M("无效请求", 10004)
+		if _, err := response.Write(b); err != nil {
+			return
+		}
+
+		return
+	}
+
+	log.Printf("date = %s, sign = %s\n", date, sign)
+
+	scriptPath := "/web/wwwroot/777brs.com/web/change_time.sh"
+	output, err := exec.Command("/bin/bash", scriptPath, date).Output()
+	if err != nil {
+		b := resp.M(fmt.Sprintf("执行%s失败，失败信息: %s", scriptPath, err), 10005)
+		if _, err := response.Write(b); err != nil {
+			return
+		}
+
+		return
+	}
+
+	b := resp.M(fmt.Sprintf("执行%s成功，成功信息: %s", scriptPath, string(output)), 10000)
+	if _, err := response.Write(b); err != nil {
+		return
+	}
+
 }
 
 func wxGetData(resp http.ResponseWriter, req *http.Request) {
