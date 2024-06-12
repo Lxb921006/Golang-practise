@@ -40,9 +40,9 @@ func main() {
 				countFinishedWorker++
 				if countFinishedWorker == workers {
 					close(req.result)
+					close(req.err)
 					return
 				}
-
 			}
 		}
 	}()
@@ -58,6 +58,11 @@ func main() {
 					return
 				}
 				fmt.Println(v)
+			case e, ok := <-req.err:
+				if !ok {
+					return
+				}
+				fmt.Println("err >>> ", e)
 			}
 		}
 	}()
@@ -70,6 +75,7 @@ func main() {
 	}()
 
 	req.wg.Wait()
+
 }
 
 type result struct {
@@ -87,6 +93,7 @@ type request struct {
 	finished chan struct{}
 	wg       *sync.WaitGroup
 	lock     *sync.Mutex
+	err      chan error
 }
 
 func newRequest(ctx context.Context, workers int) *request {
@@ -98,6 +105,7 @@ func newRequest(ctx context.Context, workers int) *request {
 		wg:       new(sync.WaitGroup),
 		lock:     new(sync.Mutex),
 		workers:  workers,
+		err:      make(chan error),
 	}
 }
 
@@ -111,14 +119,25 @@ func (r *request) run(u string) *result {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
-	ctx1, cancel1 := context.WithTimeout(context.Background(), time.Second)
+	ctx1, cancel1 := context.WithTimeout(context.Background(), time.Second*time.Duration(2))
 	defer cancel1()
 
 	var req = new(result)
 	var done = make(chan *http.Response)
 
 	go func() {
-		resp, _ := http.Get(u)
+		req, err := http.NewRequest(http.MethodGet, u, nil)
+		if err != nil {
+			r.err <- err
+			return
+		}
+		req = req.WithContext(ctx1)
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			r.err <- err
+			return
+		}
+		defer resp.Body.Close()
 		done <- resp
 	}()
 
@@ -148,9 +167,7 @@ func (r *request) work() {
 				r.finished <- struct{}{}
 				return
 			}
-
-			resp := r.run(v)
-			r.result <- resp
+			r.result <- r.run(v)
 		}
 	}
 }
