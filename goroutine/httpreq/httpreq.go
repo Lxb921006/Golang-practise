@@ -21,7 +21,6 @@ func main() {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	var workers = 10
 	var countFinishedWorker int
@@ -41,6 +40,7 @@ func main() {
 				if countFinishedWorker == workers {
 					close(req.result)
 					close(req.err)
+					cancel()
 					return
 				}
 			}
