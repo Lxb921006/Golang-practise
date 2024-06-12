@@ -276,7 +276,8 @@ func awsCdnRefresh(writer http.ResponseWriter, request *http.Request) {
 	var awsResp map[string]interface{}
 	if request.Method != "GET" {
 		b := resp.M("请求方法错误", 10003)
-		writer.Write(b)
+		_, _ = writer.Write(b)
+
 		return
 	}
 
