@@ -40,11 +40,10 @@ func main() {
 	for i := 0; i < worker; i++ {
 		go func(ctx context.Context) {
 			defer wg.Done()
-			var cancel context.CancelFunc
-			ctx, cancel = context.WithTimeout(ctx, time.Second*time.Duration(7200))
+			ctx1, cancel := context.WithTimeout(ctx, time.Second*time.Duration(7200))
 			defer cancel()
 			for file := range send {
-				if err := exec.CommandContext(ctx, cmd, "-av", "--ignore-errors", file, host).Run(); err != nil {
+				if err := exec.CommandContext(ctx1, cmd, "-av", "--ignore-errors", file, host).Run(); err != nil {
 					log.Println("exec cmd err >>> ", err, file)
 				} else {
 					fmt.Printf("successful %s \n", file)
@@ -79,6 +78,7 @@ func main() {
 
 	close(finish)
 	wg.Wait()
+	close(over)
 
 	fmt.Printf("传输总共耗时 >>> %s", time.Now().Sub(now))
 }
