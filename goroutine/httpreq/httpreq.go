@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 )
@@ -126,7 +129,23 @@ func (r *request) run(u string) *result {
 	var done = make(chan *http.Response)
 
 	go func() {
-		req, err := http.NewRequest(http.MethodGet, u, nil)
+		fb, err := os.ReadFile("")
+		if err != nil {
+			r.err <- err
+			return
+		}
+		var params = map[string]interface{}{
+			"file": fb,
+		}
+		jb, err := json.Marshal(&params)
+		if err != nil {
+			r.err <- err
+			return
+		}
+
+		body := bytes.NewReader(jb)
+
+		req, err := http.NewRequest(http.MethodPost, u, body)
 		if err != nil {
 			r.err <- err
 			return

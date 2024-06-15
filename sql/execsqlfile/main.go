@@ -16,17 +16,16 @@ var (
 	user     = flag.String("user", "", "The sqlserver user")
 	password = flag.String("password", "", "The sqlserver password")
 	sqlFile  = flag.String("sqlfile", "", "The sqlserver password")
+	query    = flag.String("query", "", "sql cmd")
 )
 
 func main() {
 
 	flag.Parse()
 
-	if flag.NFlag() != 5 {
+	if flag.NFlag() <= 4 {
 		log.Fatalln(flag.ErrHelp)
 	}
-
-	recover()
 
 	dsn := fmt.Sprintf("sqlserver://%s:%s@%s:%d?encrypt=disable&timeout=5", *user, *password, *host, *port)
 
@@ -37,28 +36,46 @@ func main() {
 
 	defer db.Close()
 
-	fo, err := os.Stat(*sqlFile)
-	if err == nil {
-		if !fo.IsDir() {
-			b, err := os.ReadFile(*sqlFile)
-			if err != nil {
-				log.Fatalln("Can only execute SQL files >>>", err)
-			}
+	if *query != "" && *sqlFile != "" {
+		log.Fatalln("choose one of param between --sqlFile,--query")
+	}
 
-			r, err := db.Exec(string(b))
-			if err != nil {
-				log.Fatalln("Failed to execute SQL >>>", err)
-			}
-
-			rs, err := r.RowsAffected()
-			if err != nil {
-				log.Fatalln("Failed to obtain execution results >>>", err)
-			}
-
-			log.Printf("res %d", rs)
+	if *query != "" {
+		exec, err := db.Exec(*query)
+		if err != nil {
+			log.Fatalln("Failed to execute SQL >>>", err)
 		}
-	} else {
-		log.Fatalln("Can only execute SQL files >>>", err)
+		rs, err := exec.RowsAffected()
+		if err != nil {
+			log.Fatalln("Failed to obtain execution results >>>", err)
+		}
+		log.Printf("query res %d", rs)
+	}
+
+	if *sqlFile != "" {
+		fo, err := os.Stat(*sqlFile)
+		if err == nil {
+			if !fo.IsDir() {
+				b, err := os.ReadFile(*sqlFile)
+				if err != nil {
+					log.Fatalln("Can only execute SQL files >>>", err)
+				}
+
+				r, err := db.Exec(string(b))
+				if err != nil {
+					log.Fatalln("Failed to execute SQL >>>", err)
+				}
+
+				rs, err := r.RowsAffected()
+				if err != nil {
+					log.Fatalln("Failed to obtain execution results >>>", err)
+				}
+
+				log.Printf("res %d", rs)
+			}
+		} else {
+			log.Fatalln("Can only execute SQL files >>>", err)
+		}
 	}
 
 }

@@ -188,7 +188,7 @@ func upload(writer http.ResponseWriter, request *http.Request) {
 	fileName := request.Form.Get("fileName")
 	fmt.Println(value)
 
-	saveDir := filepath.Join("C:\\Users\\Administrator\\Desktop\\update", fileName)
+	saveDir := filepath.Join("/nas/th-db-bak", fileName)
 	fc, _ := os.Create(saveDir)
 
 	defer fc.Close()

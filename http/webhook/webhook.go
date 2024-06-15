@@ -1,33 +1,80 @@
 package main
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
-	v1 "k8s.io/api/admission/v1"
+	admissv1 "k8s.io/api/admission/v1"
+	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"log"
 	"net/http"
 )
 
 // admitFunc 定义了处理Webhook请求的函数类型
-type admitFunc func(admissionReview *v1.AdmissionReview) *v1.AdmissionResponse
+type admitFunc func(admissionReview *admissv1.AdmissionReview) *admissv1.AdmissionResponse
 
 // admitForDebug 是一个示例admitFunc，仅打印接收到的请求并允许所有操作
-func admitForDebug(ar *v1.AdmissionReview) *v1.AdmissionResponse {
-	fmt.Printf("Received AdmissionReview: %+v\n", ar.Request)
-	return &v1.AdmissionResponse{
+func admitWithReplicaLimit(ar *admissv1.AdmissionReview) *admissv1.AdmissionResponse {
+	resourceReq := ar.Request.Resource.Resource
+	schemeRos := admissv1.SchemeGroupVersion.WithResource("deployments").Resource
+
+	if schemeRos != resourceReq {
+		return &admissv1.AdmissionResponse{
+			Allowed: true,
+			Result: &metav1.Status{
+				Message: "Not a Deployment resource.",
+			},
+		}
+	}
+
+	decoder := serializer.NewCodecFactory(runtime.NewScheme()).UniversalDeserializer()
+	obj, _, err := decoder.Decode(ar.Request.Object.Raw, nil, &appsv1.Deployment{})
+	if err != nil {
+		return &admissv1.AdmissionResponse{
+			Allowed: false,
+			Result: &metav1.Status{
+				Message: fmt.Sprintf("Could not deserialize request object: %v", err),
+			},
+		}
+	}
+
+	deployment, ok := obj.(*appsv1.Deployment)
+	if !ok {
+		return &admissv1.AdmissionResponse{
+			Allowed: false,
+			Result: &metav1.Status{
+				Message: "Deserialized object is not a Deployment.",
+			},
+		}
+	}
+
+	maxReplicas := int32(3)
+	if deployment.Spec.Replicas != nil && *deployment.Spec.Replicas > maxReplicas {
+		message := fmt.Sprintf("The number of replicas (%d) exceeds the maximum allowed (%d).", *deployment.Spec.Replicas, maxReplicas)
+		return &admissv1.AdmissionResponse{
+			Allowed: false,
+			Result: &metav1.Status{
+				Message: message,
+			},
+		}
+	}
+
+	return &admissv1.AdmissionResponse{
 		Allowed: true,
 	}
 }
 
 // toAdmissionReview 解析HTTP请求体为AdmissionReview对象
-func toAdmissionReview(r io.ReadCloser) (*v1.AdmissionReview, error) {
-	body, err := ioutil.ReadAll(r)
+func toAdmissionReview(r io.ReadCloser) (*admissv1.AdmissionReview, error) {
+	body, err := io.ReadAll(r)
 	if err != nil {
 		return nil, fmt.Errorf("can't read body: %v", err)
 	}
-	ar := v1.AdmissionReview{}
+	ar := admissv1.AdmissionReview{}
 	if err := json.Unmarshal(body, &ar); err != nil {
 		return nil, fmt.Errorf("can't unmarshal body: %v", err)
 	}
@@ -36,7 +83,7 @@ func toAdmissionReview(r io.ReadCloser) (*v1.AdmissionReview, error) {
 
 // serveHTTP 处理HTTP请求，调用admitFunc处理Webhook
 func serveHTTP(w http.ResponseWriter, r *http.Request, admit admitFunc) {
-	var reviewResponse *v1.AdmissionReview
+	var reviewResponse *admissv1.AdmissionReview
 	if r.URL.Path != "/validate" {
 		http.Error(w, "404 not found.", http.StatusNotFound)
 		return
@@ -53,12 +100,12 @@ func serveHTTP(w http.ResponseWriter, r *http.Request, admit admitFunc) {
 		return
 	}
 
-	reviewResponse = &v1.AdmissionReview{
+	reviewResponse = &admissv1.AdmissionReview{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "AdmissionReview",
-			APIVersion: "admission.k8s.io/v1",
+			APIVersion: "admission.k8s.io/admissv1",
 		},
-		Response: &v1.AdmissionResponse{
+		Response: &admissv1.AdmissionResponse{
 			UID:     ar.Request.UID,
 			Allowed: false, // 默认拒绝，admitFunc将根据实际情况修改
 		},
@@ -79,9 +126,31 @@ func serveHTTP(w http.ResponseWriter, r *http.Request, admit admitFunc) {
 }
 
 func main() {
-	http.HandleFunc("/validate", func(w http.ResponseWriter, r *http.Request) {
-		serveHTTP(w, r, admitForDebug)
+	tlsConfig := &tls.Config{
+		MinVersion: tls.VersionTLS12, // 设置最低TLS版本
+	}
+
+	// 加载证书和私钥
+	cert, err := tls.LoadX509KeyPair("", "")
+	if err != nil {
+		log.Fatalf("Failed to load certificate: %s", err)
+	}
+	tlsConfig.Certificates = []tls.Certificate{cert}
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/validate", func(w http.ResponseWriter, r *http.Request) {
+		serveHTTP(w, r, admitWithReplicaLimit)
 	})
-	fmt.Println("Listening on :8080...")
-	http.ListenAndServe(":8080", nil)
+
+	// 启动HTTPS服务器
+	srv := &http.Server{
+		Addr:      ":8443",   // HTTPS默认端口为443，这里使用8443仅为示例
+		TLSConfig: tlsConfig, // 使用配置好的TLS
+		Handler:   mux,
+	}
+
+	fmt.Println("Listening on :8443...")
+	if err := srv.ListenAndServe(); err != nil {
+		log.Fatal(err)
+	}
 }
