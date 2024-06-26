@@ -5,11 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+
 	admissv1 "k8s.io/api/admission/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
+	serializer "k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"log"
 	"net/http"
 )
@@ -31,7 +32,9 @@ func admitWithReplicaLimit(ar *admissv1.AdmissionReview) *admissv1.AdmissionResp
 		}
 	}
 
-	decoder := serializer.NewCodecFactory(runtime.NewScheme()).UniversalDeserializer()
+	decoder := serializer.NewSerializerWithOptions(serializer.DefaultMetaFactory, runtime.NewScheme(), runtime.NewScheme(), serializer.SerializerOptions{
+		Pretty: true,
+	})
 	obj, _, err := decoder.Decode(ar.Request.Object.Raw, nil, &appsv1.Deployment{})
 	if err != nil {
 		return &admissv1.AdmissionResponse{

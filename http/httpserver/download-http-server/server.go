@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -70,7 +71,7 @@ func httpServer() {
 		ReadHeaderTimeout: time.Duration(10) * time.Second,
 	}
 
-	if err := listen.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+	if err := listen.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		log.Fatalf(err.Error())
 	}
 }

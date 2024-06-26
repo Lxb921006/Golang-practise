@@ -154,6 +154,7 @@ func (r *Rds) Invite(userid string) (i int, err error) {
 	chatgpt := data["chatgpt"]
 	bd := data["bd"]
 	gemini := data["gemini"]
+	qw := data["qw"]
 	isAdd := data["add"]
 	if !ok {
 		data["invite"] = 1
@@ -178,6 +179,8 @@ func (r *Rds) Invite(userid string) (i int, err error) {
 			data["bd"] = bd
 			gemini++
 			data["gemini"] = gemini
+			qw++
+			data["qw"] = qw
 			data["add"] = 1
 			data["finished"] = 1
 		}
@@ -239,6 +242,7 @@ func (r *Rds) SetQuota() (err error) {
 			"chatgpt": 0,
 			"gemini":  20,
 			"bd":      5,
+			"qw":      5,
 		}
 
 		b, err := json.Marshal(&data)

@@ -18,7 +18,8 @@ func getAccessToken() string {
 	// 使用APIKey和SecretKey获取access_token，替换下面的应用APIKey和应用SecretKey
 	key := "b6xsGr4XQo0NgKmgBWUpXGTP"
 	secret := "5ksZiuOEU2rbdkZNm3gKdgUsvH9zX3U6"
-	url := fmt.Sprintf("https://aip.baidubce.com/oauth/2.0/token?client_id=%s&client_secret=%s&grant_type=client_credentials", key, secret)
+	url := fmt.Sprintf("https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=%s&client_secret=%s", key, secret)
+	//url = fmt.Sprintf("https://aip.baidubce.com/oauth/2.0/token?client_id=%s&client_secret=%s&grant_type=client_credentials", key, secret)
 
 	// 发送POST请求获取access_token
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer([]byte{}))
@@ -36,7 +37,7 @@ func getAccessToken() string {
 	}
 
 	// 解析JSON响应
-	var data map[string]interface{}
+	var data = make(map[string]interface{})
 	err = json.Unmarshal(body, &data)
 	if err != nil {
 		fmt.Println("解析JSON失败:", err)
@@ -57,11 +58,12 @@ func chat(payload map[string]interface{}) {
 	// 获取access_token
 	accessToken := getAccessToken()
 	if accessToken == "" {
+		log.Fatalln("fail to get accessToken")
 		return
 	}
 
 	// 构造请求URL
-	url := "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/completions_pro?access_token=" + accessToken
+	url := "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/ernie-4.0-8k-latest?access_token=" + accessToken
 
 	// 构造请求体
 	payloadBytes, err := json.Marshal(payload)
@@ -85,6 +87,7 @@ func chat(payload map[string]interface{}) {
 		n, err := reader.Read(buf)
 		if err != nil {
 			if err == io.EOF {
+				fmt.Println(string(buf[:n]))
 				break
 			}
 			fmt.Println("读取响应体失败:", err)
@@ -99,8 +102,9 @@ func main() {
 	payload := map[string]interface{}{
 		"messages": []map[string]string{
 			{
-				"role":    "user",
-				"content": "现在是几月几号几点几分几秒",
+				"role":         "user",
+				"content":      "你可以生成图片吗？",
+				"enable_trace": "true",
 			},
 		},
 		"stream": true,
@@ -118,12 +122,12 @@ func processData(data []byte) {
 		log.Fatalln(err)
 	}
 
-	fmt.Println(resp.Result)
+	//fmt.Println(resp.Result)
 
-	//loop := []int32(resp.Result)
-	//
-	//for i := 0; i < len(loop); i++ {
-	//	fmt.Println(string(loop[i]))
-	//}
+	loop := []int32(resp.Result)
+
+	for i := 0; i < len(loop); i++ {
+		fmt.Println(string(loop[i]))
+	}
 
 }

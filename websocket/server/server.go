@@ -31,7 +31,8 @@ type WxLogin struct {
 }
 
 type QuotaInfo struct {
-	Chatgpt  int `json:"chatgpt"`
+	ChatGpt  int `json:"chatgpt"`
+	Qw       int `json:"qw"`
 	Gemini   int `json:"gemini"`
 	Bd       int `json:"bd"`
 	Invite   int `json:"invite"`
@@ -63,7 +64,7 @@ func getAccessToken() string {
 	// 使用APIKey和SecretKey获取access_token，替换下面的应用APIKey和应用SecretKey
 	key := "b6xsGr4XQo0NgKmgBWUpXGTP"
 	secret := "5ksZiuOEU2rbdkZNm3gKdgUsvH9zX3U6"
-	url := fmt.Sprintf("https://aip.baidubce.com/oauth/2.0/token?client_id=%s&client_secret=%s&grant_type=client_credentials", key, secret)
+	url := fmt.Sprintf("https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=%s&client_secret=%s", key, secret)
 
 	// 发送POST请求获取access_token
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer([]byte{}))
@@ -109,11 +110,12 @@ func chatBaiDu(payload map[string]interface{}, ws *websocket.Conn, messageType i
 	}
 
 	// 构造请求URL
-	un := "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/completions_pro?access_token=" + accessToken
+	un := "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/ernie-4.0-8k-latest?access_token=" + accessToken
 
 	payload = map[string]interface{}{
-		"messages": wsData.Context,
-		"stream":   true,
+		"messages":     wsData.Context,
+		"stream":       true,
+		"enable_trace": true,
 	}
 
 	// 构造请求体
@@ -129,8 +131,6 @@ func chatBaiDu(payload map[string]interface{}, ws *websocket.Conn, messageType i
 		fmt.Println("发送请求失败:", err)
 		return
 	}
-
-	log.Println("baidu ai resp >>> ", resp.StatusCode)
 
 	defer resp.Body.Close()
 
@@ -319,8 +319,117 @@ func processGeminiData(data []byte, ws *websocket.Conn, messageType int) {
 	}
 }
 
-// chatgpt
-func chatgptWebsocketHandler(w http.ResponseWriter, r *http.Request) {
+// 通义千问
+func qWWebsocketHandler(w http.ResponseWriter, r *http.Request) {
+	var msg = make(map[string]interface{})
+	var q = r.URL.Query()
+	var openid = q.Get("openid")
+	log.Println("qw openid >>> ", openid)
+	if q.Get("openid") == "" {
+		msg["esg"] = "openid不能为空"
+		p, _ := json.Marshal(&msg)
+		_, _ = w.Write(p)
+		return
+	}
+
+	var rds = redisServer.NewRds(openid)
+	if err := rds.CheckOpenId(); err != nil {
+		msg["esg"] = err.Error()
+		p, _ := json.Marshal(&msg)
+		_, _ = w.Write(p)
+		return
+	}
+
+	if err := rds.UpdateQuota("qw"); err != nil {
+		msg["esg"] = err.Error()
+		p, _ := json.Marshal(&msg)
+		_, _ = w.Write(p)
+		return
+	}
+
+	conn, err := upGrader.Upgrade(w, r, nil)
+
+	if err != nil {
+		log.Print("Error during connection upgradation:", err)
+		return
+	}
+
+	defer conn.Close()
+
+	messageType, message, err := conn.ReadMessage()
+	if err != nil {
+		log.Println("Error during message reading:", err)
+		return
+	}
+
+	log.Printf("qw Received: %s", message)
+
+	if err := rds.UpdateQuota("qw"); err != nil {
+		bt := []rune(err.Error())
+		log.Printf("chatgpt ai limit >>> %s\n", err.Error())
+		errorData(bt, conn, messageType)
+		return
+	}
+
+	chatQw(conn, messageType, message, openid)
+}
+
+func processQwData(data []byte, ws *websocket.Conn, messageType int) {
+	var resp Resp
+
+	err := json.Unmarshal(data, &resp)
+	if err != nil {
+		log.Fatalln("Unmarshal failed >>> ", err)
+	}
+
+	loop := []rune(resp.Result)
+
+	for _, v := range loop {
+		err := ws.WriteMessage(messageType, []byte(string(v)))
+		if err != nil {
+			log.Println("Error during message writing:", err)
+			break
+		}
+		time.Sleep(time.Millisecond / 40)
+	}
+}
+
+func chatQw(ws *websocket.Conn, messageType int, message []byte, openid string) {
+	var wsData wsData
+	_ = json.Unmarshal(message, &wsData)
+
+	dial := websocket.Dialer{
+		HandshakeTimeout: 300 * time.Second,
+	}
+
+	socketUrl := fmt.Sprintf("ws://127.0.0.1:10086/qw/%s/", openid)
+
+	conn, _, err := dial.Dial(socketUrl, nil)
+	if err != nil {
+		log.Fatal("Error connecting to Websocket Server:", err)
+	}
+
+	defer conn.Close()
+
+	err = conn.WriteMessage(websocket.TextMessage, message)
+	if err != nil {
+		log.Fatal("Error during writing to websocket:", err)
+	}
+
+	for {
+		//接收
+		messageType, msg, err := conn.ReadMessage()
+		if err != nil {
+			log.Println("Error in receive:", err)
+			return
+		}
+		processQwData(msg, ws, messageType)
+	}
+
+}
+
+// chatGpt
+func chatGptWebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	var msg = make(map[string]interface{})
 	var q = r.URL.Query()
 	var openid = q.Get("openid")
@@ -371,10 +480,10 @@ func chatgptWebsocketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	chatchatgpt(conn, messageType, message, openid)
+	chatGpt(conn, messageType, message, openid)
 }
 
-func processchatgptData(data []byte, ws *websocket.Conn, messageType int) {
+func processChatGptData(data []byte, ws *websocket.Conn, messageType int) {
 	var resp Resp
 
 	err := json.Unmarshal(data, &resp)
@@ -394,7 +503,7 @@ func processchatgptData(data []byte, ws *websocket.Conn, messageType int) {
 	}
 }
 
-func chatchatgpt(ws *websocket.Conn, messageType int, message []byte, openid string) {
+func chatGpt(ws *websocket.Conn, messageType int, message []byte, openid string) {
 	var wsData wsData
 	_ = json.Unmarshal(message, &wsData)
 
@@ -423,7 +532,7 @@ func chatchatgpt(ws *websocket.Conn, messageType int, message []byte, openid str
 			log.Println("Error in receive:", err)
 			return
 		}
-		processchatgptData(msg, ws, messageType)
+		processChatGptData(msg, ws, messageType)
 	}
 
 }
@@ -544,7 +653,8 @@ func getQuota(resp http.ResponseWriter, req *http.Request) {
 	log.Println("data >>> ", data)
 
 	var respData = QuotaInfo{
-		Chatgpt:  data["chatgpt"],
+		ChatGpt:  data["chatgpt"],
+		Qw:       data["qw"],
 		Gemini:   data["gemini"],
 		Bd:       data["bd"],
 		Invite:   data["invite"],
@@ -676,7 +786,8 @@ func main() {
 	log.Println("listening ::10087")
 	http.HandleFunc("/bd", bDWebsocketHandler)
 	http.HandleFunc("/gemini", geminiWebsocketHandler)
-	http.HandleFunc("/chatgpt", chatgptWebsocketHandler)
+	http.HandleFunc("/chatgpt", chatGptWebsocketHandler)
+	http.HandleFunc("/qw", qWWebsocketHandler)
 	http.HandleFunc("/wx-login", getWxOpenId)
 	http.HandleFunc("/get-quota", getQuota)
 	http.HandleFunc("/invite", invite)

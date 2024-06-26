@@ -51,11 +51,12 @@ func setQuota() {
 
 	var data = map[string]int{
 		"chatgpt":  976,
+		"qw":       976,
 		"gemini":   960,
 		"bd":       972,
 		"time":     1706174482,
 		"add":      2,
-		"invite":   4,
+		"invite":   0,
 		"finished": 2,
 	}
 
