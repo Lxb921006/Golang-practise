@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -17,25 +18,20 @@ var (
 	wg      sync.WaitGroup
 	finish  = make(chan string)
 	worker  = 8
-	date    = "20240625_09"
+	date    = "20240709"
 	suffix  = ".bak"
-	project = "id"
+	project = "db"
 	disk    = "z"
 )
 
 func main() {
 	now := time.Now()
 	cmd := "rsync"
-	//cmd := "D:\\rsync\\ICW\\bin\\rsync.exe"
-	host := fmt.Sprintf("10.0.0.219::nas/%s-db-bak/", project)
-	//host := fmt.Sprintf("192.168.3.11::web/%s/", project)
+	host := fmt.Sprintf("172.31.44.166::%s/", project)
 	dirs := []string{
-		//"Z:\\thdb",
-		//"Z:\\dbbak\\TH-DB-2",
-		//"Z:\\dbbak\\id-cluster$idgroup",
-		"Z:\\id-db-log",
+		"/nas/dbbak/db-1/clusterAG",
+		"/nas/dbbak/db-2/mssql-2",
 	}
-	//dirs := []string{"C:\\Users\\Administrator\\Desktop\\111", "C:\\Users\\Administrator\\Desktop\\222"}
 	dirsLen := len(dirs)
 	var over = make(chan struct{}, dirsLen)
 	ctx := context.Background()
@@ -94,7 +90,7 @@ func loopDir(dir string) {
 			if v.IsDir() {
 				loopDir(filepath.Join(dir, v.Name()))
 			} else {
-				if strings.HasSuffix(filepath.Join(dir, v.Name()), suffix) && strings.Contains(filepath.Join(dir, v.Name()), date) && !strings.Contains(filepath.Join(dir, v.Name()), "test") {
+				if strings.HasSuffix(filepath.Join(dir, v.Name()), suffix) && match(filepath.Join(dir, v.Name())) {
 					rf := replace(filepath.Join(dir, v.Name()))
 					send <- rf
 				}
@@ -104,7 +100,14 @@ func loopDir(dir string) {
 }
 
 func replace(path string) string {
-	file := strings.Split(path, ":")
-	pf := filepath.Join(fmt.Sprintf("/cygdrive/%s/", disk), file[1])
-	return strings.ReplaceAll(pf, "\\", "/")
+	//file := strings.Split(path, ":")
+	//pf := filepath.Join(fmt.Sprintf("/cygdrive/%s/", disk), file[1])
+	//return strings.ReplaceAll(pf, "\\", "/")
+	return path
+}
+
+func match(file string) bool {
+	p := "20240709_063[2|3|7].*.bak$"
+	re := regexp.MustCompile(p)
+	return re.MatchString(file)
 }
