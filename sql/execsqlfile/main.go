@@ -15,7 +15,7 @@ var (
 	host     = flag.String("host", "", "The sqlserver host")
 	user     = flag.String("user", "", "The sqlserver user")
 	password = flag.String("password", "", "The sqlserver password")
-	sqlFile  = flag.String("sqlfile", "", "The sqlserver password")
+	sqlFile  = flag.String("sqlfile", "", "The sqlserver sqlFile")
 	query    = flag.String("query", "", "sql cmd")
 )
 
