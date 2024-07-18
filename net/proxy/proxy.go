@@ -51,7 +51,7 @@ func handleClient(clientConn net.Conn, server string, servers []map[string]strin
 		log.Println("clientConn to remoteConn err >>> ", err)
 	}
 
-	log.Printf("proxy to %s finished\n", remoteAddr)
+	log.Printf("proxy.tmpl to %s finished\n", remoteAddr)
 }
 
 func main() {
