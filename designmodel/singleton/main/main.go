@@ -5,12 +5,13 @@ import (
 	"sync"
 )
 
-//单例模式：在系统中一个类始终只有一个实例，如mysql连接池，redis连接池等等
+// 单例模式：在系统中一个类始终只有一个实例，如mysql连接池，redis连接池等等
+
 type Singleton interface {
 	BeginDo()
 }
 
-//注意这里是小写
+// 注意这里是小写
 type singleton struct {
 	Name string
 }
@@ -24,9 +25,11 @@ var (
 	sin  *singleton
 )
 
-//相当于i := 10;var t interface{};t = i
-//也就是把singleton的实例赋值给了Singleton接口，因为singleton实现了该接口的方法
-func GetSintance() Singleton {
+// 相当于i := 10;var t interface{};t = i
+// 也就是把singleton的实例赋值给了Singleton接口，因为singleton实现了该接口的方法
+
+func GetInstance() Singleton {
+	//sin = &singleton{}
 	//只会执行一次
 	once.Do(
 		func() {
@@ -37,10 +40,10 @@ func GetSintance() Singleton {
 }
 
 func main() {
-	g1 := GetSintance()
+	g1 := GetInstance()
 	g1.BeginDo()
 	fmt.Printf("ptr1 = %p\n", g1)
 
-	g2 := GetSintance()
+	g2 := GetInstance()
 	fmt.Printf("ptr2 = %p\n", g2)
 }

@@ -29,7 +29,7 @@ func main() {
 	cmd := "rsync"
 	host := fmt.Sprintf("10.0.135.127::nas/%s/db-1/", project)
 	dirs := []string{
-		"F:\\dbbak\\db",
+		"F:\\dbbak\\EC2AMAZ-HGIUIOA",
 	}
 	dirsLen := len(dirs)
 	var over = make(chan struct{}, dirsLen)
@@ -107,5 +107,6 @@ func replace(path string) string {
 func isMatch(file string) bool {
 	p := fmt.Sprintf("%s.*.bak$", date)
 	re := regexp.MustCompile(p)
+	re.FindString()
 	return re.MatchString(file)
 }

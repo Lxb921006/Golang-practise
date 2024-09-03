@@ -47,16 +47,32 @@ func (r *Resp) K(resp *Resp) (b []byte) {
 	return
 }
 
-func (r *Resp) R(writer http.ResponseWriter) error {
+func (r *Resp) R(writer http.ResponseWriter, request *http.Request) error {
 	_, err := writer.Write(r.Br)
 	if err != nil {
 		return err
 	}
+	log.Printf("[%v]  %s  %s\n", 10000, request.RemoteAddr, request.URL)
 	return nil
 }
 
+func (r *Resp) H(writer http.ResponseWriter, request *http.Request, data map[string]interface{}) {
+	b, err := json.Marshal(data)
+	if err != nil {
+		log.Println("H() json序列化失败, ", err)
+		return
+	}
+	_, err = writer.Write(b)
+	if err != nil {
+		log.Println("H() Write失败, ", err)
+		return
+	}
+	log.Printf("[%v]  %s  %s\n", data["status"], request.RemoteAddr, request.URL)
+	return
+}
+
 func httpServer() {
-	log.Println("http server :8092 listening...")
+	log.Println("http server :9092 listening...")
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/download", download)
@@ -66,7 +82,7 @@ func httpServer() {
 	mux.HandleFunc("/wx-data", wxGetData)
 	mux.HandleFunc("/change-time", changeTime)
 	listen := &http.Server{
-		Addr:              ":8092",
+		Addr:              ":9092",
 		Handler:           mux,
 		ReadHeaderTimeout: time.Duration(10) * time.Second,
 	}
@@ -81,6 +97,7 @@ func changeTime(response http.ResponseWriter, request *http.Request) {
 	if request.Method != "GET" {
 		b := resp.M("请求方法错误", 10003)
 		if _, err := response.Write(b); err != nil {
+			log.Println("fail to response, esg: ", err)
 			return
 		}
 
@@ -276,18 +293,30 @@ func awsCdnRefresh(writer http.ResponseWriter, request *http.Request) {
 	var resp Resp
 	var awsResp map[string]interface{}
 	if request.Method != "GET" {
-		b := resp.M("请求方法错误", 10003)
-		_, _ = writer.Write(b)
-
+		resp.H(writer, request, map[string]interface{}{
+			"esg":    "无效请求",
+			"status": 10001,
+		})
 		return
 	}
 
 	f := request.URL.Query()
 	path := f.Get("path")
 	item := f.Get("item")
-	if path == "" || item == "" {
-		b := resp.M("刷新目录或项目名不能为空", 10002)
-		writer.Write(b)
+	sign := f.Get("sign")
+	if path == "" || item == "" || sign == "" {
+		resp.H(writer, request, map[string]interface{}{
+			"esg":    "参数错误",
+			"status": 10002,
+		})
+		return
+	}
+
+	if sign != "pyhdiaomao" {
+		resp.H(writer, request, map[string]interface{}{
+			"esg":    "签名错误",
+			"status": 10003,
+		})
 		return
 	}
 
@@ -297,20 +326,24 @@ func awsCdnRefresh(writer http.ResponseWriter, request *http.Request) {
 
 	out, err := exec.CommandContext(ctx, "sh", "/root/shellscript/aws_cdn_refresh.sh", item, path).Output()
 	if err != nil {
-		b := resp.M(string(out), 10001)
-		writer.Write(b)
+		resp.H(writer, request, map[string]interface{}{
+			"esg":    string(out),
+			"status": 10004,
+		})
 		return
 	}
 
 	err = json.Unmarshal(out, &awsResp)
 	if err != nil {
-		b := resp.M(err.Error(), 10004)
-		writer.Write(b)
+		resp.H(writer, request, map[string]interface{}{
+			"esg":    err.Error(),
+			"status": 10005,
+		})
 		return
 	}
 
 	respKRM := &Resp{
-		Msg:    fmt.Sprintf("%s刷新成功, 刷新生效需等20-50s左右", path),
+		Msg:    fmt.Sprintf("%s cdn refresh succeed", "https://hotupdate-static-new.burstedgold.com"),
 		Status: 10000,
 		Detail: awsResp,
 	}
@@ -318,5 +351,8 @@ func awsCdnRefresh(writer http.ResponseWriter, request *http.Request) {
 	b := resp.K(respKRM)
 	respKRM.Br = b
 
-	respKRM.R(writer)
+	if err := respKRM.R(writer, request); err != nil {
+		log.Println("响应失败, 失败信息: ", err)
+		return
+	}
 }
